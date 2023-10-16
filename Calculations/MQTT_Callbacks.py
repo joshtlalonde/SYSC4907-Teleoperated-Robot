@@ -1,7 +1,6 @@
 # import paho.mqtt.client as mqtt
-# from MQTT_Client import MQTT_Client
 
-# class MQTT_Callbacks(MQTT_Client):
+# class MQTT_Callbacks:
 #     def __init__(self):
 #         pass
 
@@ -66,4 +65,4 @@
 #     def on_test_message(self, client: mqtt.Client, userdata, message: mqtt.MQTTMessage):
 #         print(f"Received TEST message on topic {message.topic}: {message.payload}")
 
-#         super().publish("respond/topic", f"How is it going from client {super().client_id}")
+        
