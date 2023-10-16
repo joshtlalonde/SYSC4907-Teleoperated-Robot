@@ -1,3 +1,5 @@
+import os
+
 import paho.mqtt.client as mqtt
 from MQTT_Callbacks import MQTT_Callbacks
 
@@ -21,7 +23,7 @@ class MQTT_Client:
 
     # Connect to Broker and initialize listing loop
     def connect(self, broker_hostname: str, broker_port: int = 8883, client_id: str = None):
-        self.client.connect(host=broker_hostname, port=broker_port, keepalive=60, bind_address="192.168.2.12")
+        self.client.connect(host=broker_hostname, port=broker_port, keepalive=60)
         self.client.loop_forever()
 
     def publish(self):
@@ -31,7 +33,8 @@ class MQTT_Client:
         pass
 
 if __name__ == "__main__":
-    client = MQTT_Client(r"C:\Users\Josh's PC\Documents\University\Classes\Capstone Project\MQTT\certs\ca-root-cert.crt")
+    dir_path = os.path.dirname(os.path.realpath(__file__)) + r"\certs\ca-root-cert.crt"
+    client = MQTT_Client(dir_path)
     client.connect("LAPTOP-HL4N9U5Q")
     # client.connect("192.168.2.18", 8883)
     # client.connect("mqtt.eclipseprojects.io", broker_port=1883)
