@@ -1,6 +1,7 @@
 #include <SPI.h>
 #include "mqtt_client.h"
 #include "EthernetENC.h"
+#include "WiFi.h"
 
 // the media access control (ethernet hardware) address for the shield:
 byte Ethernet_MAC[] = { 0x40, 0x8D, 0x5C, 0xE7, 0xA5, 0x98 };  
@@ -59,8 +60,11 @@ void setup()
 {
   Serial.begin(115200);
 
+  WiFi.begin();
+
   Ethernet.init(34);
-  Ethernet.begin(Ethernet_MAC, Ethernet_IP);
+  Ethernet.begin(Ethernet_MAC);
+  // Ethernet.begin(Ethernet_MAC, Ethernet_IP);
   // if (Ethernet.begin(Ethernet_MAC) == 0) {
   //   Serial.println("Failed to configure Ethernet using DHCP");
   //   // try to congifure using IP address instead of DHCP:
@@ -85,11 +89,6 @@ void setup()
     Serial.println(Ethernet.hardwareStatus());
   }
 
-  Serial.print("The gateway IP address is: ");
-  Serial.println(Ethernet.gatewayIP());
-  Serial.print("The local IP address is: ");
-  Serial.println(Ethernet.localIP());
-
     if (Ethernet.linkStatus() == Unknown) {
     Serial.println("Link status unknown. Link status detection is only available with W5200 and W5500.");
   }
@@ -103,22 +102,16 @@ void setup()
     Serial.println(Ethernet.linkStatus());
   }
 
-  if (client.connect("mqtt://169.254.119.79:1883", Mosquitto_Port)) {
-    Serial.println("connected");
-  } else {
-    Serial.println("connection failed");
-  }
-
 	// put your setup code here, to run once:
 	const esp_mqtt_client_config_t mqtt_cfg = {
-		.uri = "mqtt://169.254.119.79:1883" // Try testing using just the IP and Port... The mqtt:// might be trying to make an external connection
+		.uri = "mqtt://LAPTOP-HL4N9U5Q:1883" // Try testing using just the IP and Port... The mqtt:// might be trying to make an external connection
     // .uri = "mqtt://mqtt.eclipseprojects.io"
 	};
   Serial.println("Init MQTT Client");
 	esp_mqtt_client_handle_t mqtt_client = esp_mqtt_client_init(&mqtt_cfg);
 
-	// Serial.println("Register MQTT Client Handler");
-	// esp_mqtt_client_register_event(mqtt_client, MQTT_EVENT_ANY, mqtt_event_handler, mqtt_client);
+	Serial.println("Register MQTT Client Handler");
+	esp_mqtt_client_register_event(mqtt_client, MQTT_EVENT_ANY, mqtt_event_handler, mqtt_client);
   Serial.println("Start MQTT Client");
 	esp_err_t ret = esp_mqtt_client_start(mqtt_client);
   ESP_LOGI ("TEST", "Client connect. Error = %d %s", err, esp_err_to_name (err));
