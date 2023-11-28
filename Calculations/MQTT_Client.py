@@ -23,6 +23,7 @@ class MQTT_Client:
         # TODO: Setup a self.kin for the kinematics class, this way we can just update the encoder and current values within the messages
         self.test_enc = {'left': 0, 'right': 0}
         self.test_curr = {'left': 0, 'right': 0}
+        self.test_pos = {'x': 0, 'y': 0}
 
         # Setup callback function for when connection is made
         self.client.on_connect = callbacks.on_connect
@@ -117,18 +118,18 @@ if __name__ == "__main__":
 
     time.sleep(1)
 
-    for i in range(10):
-        client1.test_enc['left'] = client1.test_enc['left'] + 1000
-        client1.test_enc['right'] = client1.test_enc['right'] + 100
-        client1.test_curr['left'] = client1.test_curr['left'] + 10
-        client1.test_curr['right'] = client1.test_curr['right'] + 1 
+    while(1):
+        client1.test_enc['left'] = 0
+        client1.test_enc['right'] = 0
+        client1.test_curr['left'] = 0
+        client1.test_curr['right'] = 0
 
         # Take turns publishing
         print("Publish Client 1")
         client1.publish(f"encoder/{client1.client_id}", json.dumps(client1.test_enc), qos=1)
         client1.publish(f"current/{client1.client_id}", json.dumps(client1.test_curr), qos=1)
     
-        time.sleep(5)
+        time.sleep(10)
 
     # Disconnect clients
     client1.disconnect()

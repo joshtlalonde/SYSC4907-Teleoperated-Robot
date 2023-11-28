@@ -1,13 +1,14 @@
 
 #include "MQTTClient.h"
+#include "MQTTClient_Callbacks.h"
+#include "Arm.h"
 
-// the media access control (ethernet hardware) address for the shield:
+// The media access control (ethernet hardware) address for the ethernet shield:
 byte ETHERNET_MAC[] = { 0x40, 0x8D, 0x5C, 0xE7, 0xA5, 0x98 };  
-//the IP address for the shield:
+// The IP address for the ethernet shield:
 IPAddress ETHERNET_IP(192, 168, 2, 147); 
 // The IP address of the mosquitto instance
-// IPAddress MOSQUITTO_IP(192, 168, 2, 12); 
-char* MOSQUITTO_IP = "192.168.2.18";
+char* MOSQUITTO_IP = "172.17.49.245"; //"192.168.2.18"; 
 // The port of the Mosquitto instance
 int MOSQUITTO_PORT = 8883;//1883;
 
@@ -18,52 +19,8 @@ char* PASSWORD = "CapstoneBroker";
 
 Ether ether(ETHERNET_IP, ETHERNET_MAC);
 Wireless wifi;
-MQTTClient mqttClient("Arm1_Test", ether, wifi);
-
-volatile int encoder_val = 0;
-volatile int current_val = 0;
-
-void on_encoder(void* handler_args, esp_event_base_t base, int32_t event_id, void* event_data) {
-    esp_mqtt_event_handle_t event = (esp_mqtt_event_handle_t) event_data;
-    esp_mqtt_client_handle_t client = event->client;
-    char* client_id = (char*) handler_args;
-
-    char topic[50], event_topic[50];
-    sprintf(topic, "encoder/%s", client_id);
-    sprintf(event_topic, "%.*s", event->topic_len, event->topic);
-    
-    if (event->event_id == MQTT_EVENT_DATA) {
-        if (strcmp(event_topic, topic) == 0) {
-            Serial.println("<ARM>: MQTT_EVENT_DATA");
-            
-            Serial.printf("<ARM>: Recieved message on topic=%.*s with data: %.*s\n", 
-                          event->topic_len, event->topic, event->data_len, event->data);
-
-            encoder_val = atoi(event->data);
-        }
-    }
-}
-
-void on_current(void* handler_args, esp_event_base_t base, int32_t event_id, void* event_data) {
-    esp_mqtt_event_handle_t event = (esp_mqtt_event_handle_t) event_data;
-    esp_mqtt_client_handle_t client = event->client;
-    char* client_id = (char*) handler_args;
-
-    char topic[50], event_topic[50];
-    sprintf(topic, "current/%s", client_id);
-    sprintf(event_topic, "%.*s", event->topic_len, event->topic);
-    
-    if (event->event_id == MQTT_EVENT_DATA) {
-          if (strcmp(event_topic, topic) == 0) {
-            Serial.println("<ARM>: MQTT_EVENT_DATA");
-            
-            Serial.printf("<ARM>: Recieved message on topic=%.*s with data: %.*s\n", 
-                          event->topic_len, event->topic, event->data_len, event->data);
-
-            current_val = atoi(event->data);
-          }
-    }
-}
+MQTTClient mqttClient("trainee", ether, wifi);
+Arm arm(mqttClient);
 
 void setup()
 {
@@ -86,19 +43,36 @@ void setup()
   // Start MQTT
   mqttClient.start();
 
-  // Attach Callback for Encoder Data
-  mqttClient.add_message_callback(MQTT_EVENT_DATA, on_encoder, mqttClient.getClientId(), "on_encoder");
-  // Attach Callback for Current Data
-  mqttClient.add_message_callback(MQTT_EVENT_DATA, on_current, mqttClient.getClientId(), "on_current");
+  // Attach Callback for Data messages
+  mqttClient.add_message_callback(MQTT_EVENT_DATA, on_data, (void*) &arm, "on_data");
 
   // Subscribe to Encoder Topic
-  mqttClient.subscribe("encoder/Arm1_Test", 1);
+  mqttClient.subscribe("encoder/#", 1);
   // Subscribe to Current Topic
-  mqttClient.subscribe("current/Arm1_Test", 1);
+  mqttClient.subscribe("current/#", 1);
 }
 
 void loop () {
-  Serial.printf("<ARM>: encoder_val = %d\n", encoder_val);
-  Serial.printf("<ARM>: current_val = %d\n", current_val);
-  delay(5000);
+  Serial.printf("<ARM>: Encoder --> Left = %f, Right = %f\n", arm.getEncoderLeft(), arm.getEncoderRight());
+  Serial.printf("<ARM>: Current --> Left = %f, Right = %f\n", arm.getCurrentLeft(), arm.getCurrentRight());
+  delay(1000);
+  
+  // Simulating Values constantly updating
+  arm.setEncoderLeft(arm.getEncoderLeft() + 1);
+  arm.setEncoderRight(arm.getEncoderRight() + 10);
+  arm.setCurrentLeft(arm.getCurrentLeft() + 25);
+  arm.setCurrentRight(arm.getCurrentRight() + 50);
+
+  // Publish the JSONify version of the encoder/current values
+  char topic[50], encoder_val_str[50], current_val_str[50];
+  arm.encoder_jsonify(encoder_val_str);
+  arm.current_jsonify(current_val_str);
+
+  sprintf(topic, "encoder/%s", arm.getClientId());
+  mqttClient.publish(topic, encoder_val_str, 0, 1, 0);
+
+  sprintf(topic, "current/%s", arm.getClientId());
+  mqttClient.publish(topic, current_val_str, 0, 1, 0);
+
+  delay(1000);
 }

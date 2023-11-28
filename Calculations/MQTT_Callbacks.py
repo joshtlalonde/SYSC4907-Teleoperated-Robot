@@ -2,6 +2,7 @@ import json
 
 from MQTT_Client import MQTT_Client
 import paho.mqtt.client as mqtt
+import KinematicEquations as kin
 
 def on_connect(client: mqtt.Client, userdata: MQTT_Client, flags, rc):
     if rc == 0:
@@ -44,8 +45,17 @@ def on_encoder(client: mqtt.Client, userdata: MQTT_Client, message: mqtt.MQTTMes
         print(f"<MQTT_Callbacks>: Received ENCODER message on topic {message.topic}: {message.payload}")
 
         if "trainee" in message.topic:
-            print(f"    Updating 'trainee' encoder value: {message.payload.decode()}")
             userdata.test_enc = json.loads(message.payload.decode())
+            print(f"    Updated 'trainee' encoder value: {message.payload.decode()}")
+
+            # convert encoder to angle
+            userdata.test_enc["left"] = kin.encoderToAngle(userdata.test_enc["left"])
+            userdata.test_enc["right"] = kin.encoderToAngle(userdata.test_enc["right"])
+
+            print(f"    After Encoder to Angle 'trainee' Angle value: {userdata.test_enc} radians")
+
+            (userdata.test_pos['x'], userdata.test_pos['y']) = kin.forward_kinematics(userdata.test_enc["left"], userdata.test_enc["right"], userdata.test_pos['y'])
+            print(f"    Updated 'trainee' position value: {userdata.test_pos}")
 
 def on_current(client: mqtt.Client, userdata: MQTT_Client, message: mqtt.MQTTMessage):
     if userdata.client_id not in message.topic:
