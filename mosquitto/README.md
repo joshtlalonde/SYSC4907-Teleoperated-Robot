@@ -1,3 +1,7 @@
+# Notes for local use
+The following command will run the server with the presets needed for TLS encrypted traffic. You must be in this directory to execute it.
+`.\mosquitto.exe -c .\test.conf -v`
+
 Eclipse Mosquitto
 =================
 
