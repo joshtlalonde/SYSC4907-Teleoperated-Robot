@@ -118,18 +118,24 @@ if __name__ == "__main__":
 
     time.sleep(1)
 
+    client1.test_enc['left'] = 0
+    client1.test_enc['right'] = 0
+    client1.test_curr['left'] = 0
+    client1.test_curr['right'] = 0
+    client1.test_pos['x'] = 0
+    client1.test_pos['y'] = 0
     while(1):
-        client1.test_enc['left'] = 0
-        client1.test_enc['right'] = 0
-        client1.test_curr['left'] = 0
-        client1.test_curr['right'] = 0
+        # pass
+        client1.test_pos['x'] = client1.test_pos['x'] + 0.1
+        client1.test_pos['y'] = client1.test_pos['y'] + 0.1
 
         # Take turns publishing
         print("Publish Client 1")
-        client1.publish(f"encoder/{client1.client_id}", json.dumps(client1.test_enc), qos=1)
-        client1.publish(f"current/{client1.client_id}", json.dumps(client1.test_curr), qos=1)
+        # client1.publish(f"encoder/{client1.client_id}", json.dumps(client1.test_enc), qos=1)
+        # client1.publish(f"current/{client1.client_id}", json.dumps(client1.test_curr), qos=1)
+        client1.publish(f"position/{client1.client_id}", json.dumps(client1.test_pos), qos=1)
     
-        time.sleep(10)
+        time.sleep(5)
 
     # Disconnect clients
     client1.disconnect()

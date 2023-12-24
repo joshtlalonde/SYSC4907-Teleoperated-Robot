@@ -1,4 +1,7 @@
 # Environment
-Contains code for the virtual environment
+Contains the scripts used in our Virtual Environment Simulation
 
-More to follow
+## TheScript
+
+## MQTTScript
+The MQTT Script currently does not work, there are some issues with the TLS certificate authrization I am still trying to figure out.
