@@ -25,6 +25,8 @@ using UnityEngine;
 
 public class TheScript : MonoBehaviour
 {
+    public static TheScript Instance;
+
     private Rigidbody playerRb;
     public ParticleSystem blood;
 
@@ -50,43 +52,76 @@ public class TheScript : MonoBehaviour
     private float initPosY = 1.12f;
     private float initPosZ = -0.05f; //Adjust z position to make scalpel more centred
 
+    // Scaple Position Change
+    private float posX;
+    private float posY;
+
     //Environment boundaries
     private float bound = 0.1f;
     private float boundZ = 0.15f; //bound for forward and back movement
 
-    //UDP variables
-    private string IP_address = "192.168.101.249"; //IP address of the Arduino Nano
-    private int udpPort = 1556; //Available UDP port 
+
     private string caseContactNumber = "1"; // Case 1: No Contact | Case 2: Chest Contact | Case 3: Bone/Patient Gown Contact
+
+    private bool mqttFlag = false; // Flag Used to determine if position is being updated from MQTT or the mouse
+
+    // Function needed to pass object to MQTT Instance 
+    private void Awake()
+    {
+        if (Instance == null)
+        {
+            Instance = this;
+        }
+        else if (Instance != this)
+        {
+            Destroy(gameObject);
+        }
+    }
+
+    /** 
+     * Updates the X and Y position of the Scaple
+     * ISSUE: The issue with this is that this value is used to update the relative force to move the scaple in a direction
+     *        So how do we convert the {x, y} coord value to just move towards that position
+     *        So this value is the relative value on how far to move. So we would need to keep track of the current position
+     *        and then update the position to just be the relative difference
+     */
+    public void MQTT_Update(float posX, float posY) {
+        Debug.Log("Update Position: {" + posX + ", " + posY + "}");
+        this.posX = posX;
+        this.posY = posY;
+
+        mqttFlag = true;
+    }
 
     async void Start()
     {
         playerRb = GetComponent<Rigidbody>();
         blood.Stop();
-
-        Debug.Log("I am alive!");  
-        // Client_Connection_Samples mqttClient = new Client_Connection_Samples();
         
-        var myMqttClient = new TestMQTT("SomeID");
-        // await mqttClient.Connect_Client();
+        // Set Default location of scaple
+        // transform.position = new Vector3(initPosX, initPosY, initPosZ);
 
-        try
-        {
-            await myMqttClient.Connect_Client("LAPTOP-HL4N9U5Q", "./Assets/Scripts/certs/ca-root-cert.crt");
-        }
-        catch (Exception ex)
-        {
+        // Create MQTT Client
+        var mqttClient = new MQTT_Client("virt");
+
+        // Connect MQTT Client and Subscribe to Position Topic
+        try {
+            await mqttClient.Connect("LAPTOP-HL4N9U5Q", "./Assets/Scripts/certs/ca-root-cert.crt");
+            await mqttClient.Subscribe("position/kin", 1);
+        } catch (Exception ex) {
             Debug.Log($"An error occurred: {ex.Message}");
         }
     }
 
     void Update()
     {
-        float h = Input.GetAxisRaw("Mouse X"); // Movement of the mouse in the Y direction
-        float u = Input.GetAxisRaw("Mouse Y"); // Movement of the mouse in the X direction
+        if (!mqttFlag) {
+            posX = Input.GetAxisRaw("Mouse X"); // Movement of the mouse in the Y direction
+            posY = Input.GetAxisRaw("Mouse Y"); // Movement of the mouse in the X direction
+        }
 
-
-        movementInput = new Vector3(0f, u, h);
+        movementInput = new Vector3(0f, posX, posY);
+        
         scalpelPositions.Add(transform.position);
 
         if (scalpelPositions.Count > 1000)
@@ -102,11 +137,16 @@ public class TheScript : MonoBehaviour
         {
             transform.position = new Vector3(initPosX, initPosY, initPosZ);
         }
+
+        Debug.Log("Mouse X: " + posX + ", Mouse Y: " + posY + ", movementInput: " + movementInput);
   
         ScalpelMovement();
         Bounds();
         PrintToScreen();
-        TransmitOverUDP(caseContactNumber);
+
+        // Reset Flag on every frame
+        // QUESTION: Will this mean that it will go to the mouse position between messages though?
+        mqttFlag = false;
     }
 
 
@@ -206,7 +246,7 @@ public class TheScript : MonoBehaviour
                     float riseSpeed = 0.01f + chestDepth * 0.1f; // Adjust the rise speed according to your preference
                     Vector3 riseForce = Vector3.down * riseSpeed;
                     playerRb.AddRelativeForce(riseForce);
-                    Debug.Log("Rise force applied: " + riseForce.magnitude);
+                    // Debug.Log("Rise force applied: " + riseForce.magnitude);
             blood.Play();
                 }
                 break;
@@ -232,7 +272,7 @@ public class TheScript : MonoBehaviour
 
 
         // Print the force magnitude to the console
-        Debug.Log("Force applied: " + movementForce.magnitude);
+        // Debug.Log("Force applied: " + movementForce.magnitude);
 
         GetComponent<Rigidbody>().AddRelativeForce(movementInput * speed);
 
@@ -278,23 +318,7 @@ public class TheScript : MonoBehaviour
     //A function to print the contact case number to the console, this is helpful for debugging but can be omitted
     void PrintToScreen()
     {
-        Debug.Log("case " + caseContactNumber);
-    }
-
-    //A function to send the caseContactNumber over UDP to the Arduino Nano microcontroller, which will be used to control the linear actuators and the vibrational motor
-    private void TransmitOverUDP(String dataToSend)
-    {
-        //create the socket
-        Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-
-        //connect to the socket
-        socket.Connect(IP_address, udpPort);
-
-        //convert the data from string into a character array to prepare it to be sent
-        byte[] sendBytes = Encoding.ASCII.GetBytes(dataToSend);
-        
-        //Send the character array over UDP
-        socket.Send(sendBytes);
+        // Debug.Log("case " + caseContactNumber);
     }
 }
 
