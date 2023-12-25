@@ -3,27 +3,24 @@ import time
 import json
 
 import paho.mqtt.client as mqtt
-import MQTT_Callbacks as callbacks
 
 # TODO: Create a Logger??
 
 
 # TODO: If we were to have the kinematics CLASS connected into this then we can update it directly within the message functions
 class MQTT_Client:
-    def __init__(self, cert_path: str, client_id: str = None):        
+    def __init__(self, cert_path: str, client_id: str = None): 
+        # Import MQTT_Callbacks, must be here due to circular dependency
+        import MQTT_Callbacks as callbacks
+
         # Create MQTT Client object
         self.client = mqtt.Client(protocol=mqtt.MQTTv31, client_id=client_id)
         # Settup for TLS connection to broker, points to certificate file 
         self.client.tls_set(cert_path)
         # Keep track of client name
         self.client_id = client_id
-        # Setup the userdata for callbacks
+        # Setup the userdata passed to the callbacks function
         self.client.user_data_set(self)
-
-        # TODO: Setup a self.kin for the kinematics class, this way we can just update the encoder and current values within the messages
-        self.test_enc = {'left': 0, 'right': 0}
-        self.test_curr = {'left': 0, 'right': 0}
-        self.test_pos = {'x': 0, 'y': 0}
 
         # Setup callback function for when connection is made
         self.client.on_connect = callbacks.on_connect
@@ -46,6 +43,7 @@ class MQTT_Client:
     def connect(self, broker_hostname: str, broker_port: int = 8883):
         self.client.connect(host=broker_hostname, port=broker_port, keepalive=60)
         self.client.loop_start()
+        # TODO: Handle Failure to connect
 
     def disconnect(self):
         # TODO: Ensure any published messages have been sent (wait_for_publish())
@@ -53,7 +51,7 @@ class MQTT_Client:
 
     def publish(self, topic: str, payload, qos: int = 0, retain: bool = False):
         try:
-            messageInfo: mqtt.MQTTMessageInfo = self.client.publish(topic, payload, qos, retain)
+            messageInfo: mqtt.MQTTMessageInfo = self.client.publish(f"{topic}/{self.client_id}", payload, qos, retain)
         except ValueError:
             raise ValueError("<MQTT_Client>: qos is not 0, 1 or 2.",
                              "Or topic is None, has zero length or is invalid (contains a wildcard).",
@@ -106,7 +104,7 @@ if __name__ == "__main__":
     ##### TESTING #####
     dir_path = os.path.dirname(os.path.realpath(__file__)) + r"\certs\ca-root-cert.crt"
     # Create Clients
-    client1 = MQTT_Client(cert_path=dir_path, client_id="kin")
+    client1 = MQTT_Client(cert_path=dir_path, client_id="trainee") # For Testing set to trainee
     # Connect Clients
     print("Connect Client 1")
     client1.connect(broker_hostname="LAPTOP-HL4N9U5Q")
@@ -118,22 +116,18 @@ if __name__ == "__main__":
 
     time.sleep(1)
 
-    client1.test_enc['left'] = 0
-    client1.test_enc['right'] = 0
-    client1.test_curr['left'] = 0
-    client1.test_curr['right'] = 0
-    client1.test_pos['x'] = 0
-    client1.test_pos['y'] = 0
+    test_enc = {'left': 0, 'right': 0}
+    test_curr = {'left': 0, 'right': 0}
+    test_pos = {'x': 0, 'y': 0}
+
     while(1):
-        # pass
-        client1.test_pos['x'] = client1.test_pos['x'] + 0.1
-        client1.test_pos['y'] = client1.test_pos['y'] + 0.1
+        
 
         # Take turns publishing
         print("Publish Client 1")
-        # client1.publish(f"encoder/{client1.client_id}", json.dumps(client1.test_enc), qos=1)
+        client1.publish(f"encoder", json.dumps(test_enc), qos=1)
         # client1.publish(f"current/{client1.client_id}", json.dumps(client1.test_curr), qos=1)
-        client1.publish(f"position/{client1.client_id}", json.dumps(client1.test_pos), qos=1)
+        # client1.publish(f"position/{client1.client_id}", json.dumps(client1.test_pos), qos=1)
     
         time.sleep(5)
 

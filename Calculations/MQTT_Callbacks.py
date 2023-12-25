@@ -1,8 +1,8 @@
 import json
-
+import Kinematic_Equations
+from Kinematics import Kinematics
 from MQTT_Client import MQTT_Client
 import paho.mqtt.client as mqtt
-import KinematicEquations as kin
 
 def on_connect(client: mqtt.Client, userdata: MQTT_Client, flags, rc):
     if rc == 0:
@@ -40,27 +40,50 @@ def on_unsubscribe(client: mqtt.Client, userdata: MQTT_Client, mid):
 def on_message(client: mqtt.Client, userdata: MQTT_Client, message: mqtt.MQTTMessage):
     print(f"<MQTT_Callbacks>: Received message on topic {message.topic}: {message.payload}")
 
-def on_encoder(client: mqtt.Client, userdata: MQTT_Client, message: mqtt.MQTTMessage):
+'''
+    This is where the magic happens for messages received from Arm to Kinematics
+    This will receive an encoder value from the Arm as a JSON {left: int, right: int}
+    These value will be converted to radians and then using forward kinematics they will
+    be converted to (x, y) positions
+
+    After getting the position it will then publish to the Virtual Environment
+'''
+def on_encoder(client: mqtt.Client, userdata: Kinematics, message: mqtt.MQTTMessage):
     if userdata.client_id not in message.topic:
         print(f"<MQTT_Callbacks>: Received ENCODER message on topic {message.topic}: {message.payload}")
 
         if "trainee" in message.topic:
-            userdata.test_enc = json.loads(message.payload.decode())
+            # Convert JSON Message to Dict
+            encoder_payload = json.loads(message.payload.decode())
             print(f"    Updated 'trainee' encoder value: {message.payload.decode()}")
 
-            # convert encoder to angle
-            userdata.test_enc["left"] = kin.encoderToAngle(userdata.test_enc["left"])
-            userdata.test_enc["right"] = kin.encoderToAngle(userdata.test_enc["right"])
+            # Convert encoder value to angle radians
+            userdata.updateTheta(
+                userdata.encoderToAngle(encoder_payload["left"]), 
+                userdata.encoderToAngle(encoder_payload["right"]))
 
-            print(f"    After Encoder to Angle 'trainee' Angle value: {userdata.test_enc} radians")
+            # TODO: Remove
+            print(f"    After Encoder to Angle 'trainee' Angle value: {userdata.theta} radians")
 
-            (userdata.test_pos['x'], userdata.test_pos['y']) = kin.forward_kinematics(userdata.test_enc["left"], userdata.test_enc["right"], userdata.test_pos['y'])
-            print(f"    Updated 'trainee' position value: {userdata.test_pos}")
+            # Get Position from Angles
+            new_position = Kinematic_Equations.forward_kinematics(userdata.theta["left"], 
+                                                                  userdata.theta["right"],
+                                                                  userdata.position['y'])
+            userdata.updatePosition(new_position['x'], 
+                                               new_position['y'])
+           
+            # TODO: Remove
+            print(f"    Updated 'trainee' position value: {userdata.position}")
+
+            # Forward new position to Virtual Environment
+            userdata.mqttClient.publish(topic='position', 
+                             payload=json.dumps(userdata.position), 
+                             qos=1)
 
 def on_current(client: mqtt.Client, userdata: MQTT_Client, message: mqtt.MQTTMessage):
     if userdata.client_id not in message.topic:
         print(f"<MQTT_Callbacks>: Received CURRENT message on topic {message.topic}: {message.payload}")
 
         if "trainee" in message.topic:
-            print(f"    Updating 'trainee' current value: {message.payload.decode()}")
-            userdata.test_curr = json.loads(message.payload.decode())
+            print(f"    TODO!!! Updating 'trainee' current value: {message.payload.decode()}")
+            # userdata.test_curr = json.loads(message.payload.decode())
