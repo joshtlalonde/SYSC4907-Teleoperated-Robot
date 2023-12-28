@@ -13,7 +13,9 @@ class Kinematics:
         # Initial encoder is {left: 1.0148, right: 1.0148} in radians
         self.theta = {'left': 1.0148, 'right': 1.0148} 
         # Initial previous position is {'x': 22.5, 'y': 76.45} 
-        self.prev_position = {'x': 22.5, 'y': 76.45} 
+        self.prev_position = self.position
+        # Initial Theta Offset Value
+        self.init_theta = 1.0148
 
         # Set Client ID
         self.client_id = "kin"
@@ -29,9 +31,9 @@ class Kinematics:
         #   But how do we do this? There is circular errors. I think we should try and make the code work 
         #   without the Callbacks first and see if that works at least
         # Subscribe to Encoder, Current, and Force Topics
-        self.mqttClient.subscribe(topic='encoder/#', qos=1)
-        self.mqttClient.subscribe(topic='current/#', qos=1)
-        self.mqttClient.subscribe(topic='force/#', qos=1)
+        self.mqttClient.subscribe(topic='encoder/#', qos=2)
+        self.mqttClient.subscribe(topic='current/#', qos=2)
+        self.mqttClient.subscribe(topic='force/#', qos=2)
 
     # Update (x,y) Position of the Arm
     # Input:
@@ -39,7 +41,7 @@ class Kinematics:
     #   y: y coordinate of the Arm
     def updatePosition(self, x: float, y: float):
         # Store the current position as the previous position
-        self.prev_position = self.position 
+        self.prev_position = self.position.copy()
         # Update the position
         #self.position =  Kinematic_Equations.forward_kinematics(self.encoderToAngle(self.encoder['left']), self.encoderToAngle(self.encoder['right']), self.prev_y)  # Call the forward kinematics
         self.position['x'] = x
@@ -69,7 +71,7 @@ class Kinematics:
 
         Note: Ensure the encoder value is within the appropriate range for accurate angle conversion.
         """
-        return (encoder * (math.pi/4096)) + 1.0148 # add the intial shaft offset
+        return (encoder * (math.pi/4096)) + self.init_theta # add the intial shaft offset angle
     
 
     def angleToEncoder(self, angle: float):
@@ -88,45 +90,49 @@ class Kinematics:
 
         Note: Ensure the input shaft angle is within the appropriate range for accurate encoder value calculation.
         """
-        return ((angle * 4096) / math.pi) - 1.0148 # subtarct the inital values
+        return (((angle - self.init_theta) * 4096) / math.pi) # subtarct the inital angle value
+    
+class TestKinematics(unittest.TestCase):
+    def test_encoderToAngle(self): 
+        self.assertAlmostEqual((200 * (math.pi/4096)) + 1.0148, 1.1682, 4)
 
+    def test_angleToEncoder(self):
+        self.assertAlmostEqual((((1.1682 - 1.0148) * 4096) / math.pi), 200, 0)
 
-# class TestKinematicMethods(unittest.TestCase):
-#     """
-#     The TestKinematicMethods class contains unit tests for the methods in the Kinematics class.
-#     """
-#     def test_forward_kinematics(self):
-#         self.assertAlmostEqual(Kinematic_Equations.forward_kinematics(1.0148, 1.0148, 76.32), {22.5, 76.4437}, 3)
+    def test_updatePosition(self):
+        kin = Kinematics()
+        self.assertEqual(kin.position, {'x': 22.5, 'y': 76.32})
+        kin.updatePosition(1.5, 2.0)
 
-#     def test_inverse_kinematics(self):
-#         self.assertAlmostEqual(Kinematic_Equations.inverse_kinematics(22.5, 76.4),{1.0148,1.0148}, 4 )
-
-#     def test_jacobian(self):
-#         self.assertAlmostEqual(Kinematic_Equations.jacobian(1.0148, 1.0148, 76.32), {}, 3)
-
-#     def test_transpose_jacobian(self):
-#         self.assertAlmostEqual(Kinematic_Equations.transpose_jacobian(1.0148, 1.0148, 76.32), {}, 3)
-
-#     def test_encoderToAngle(self):
-#         self.assertAlmostEqual(Kinematic_Equations.encoderToAngle(200),0.1533,4)
-
-#     def test_angleToEncoder(self):
-#         self.assertAlmostEqual(Kinematic_Equations.angleToEncoder(0.1533),200,4)
-
-        
-# class TestArmPy(unittest.TestCase):
-#         """
-#         The TestArmPy class contains unit tests for the methods in the Arm_Py class.
-#         """
-#         def test_getPostion(self):
-#             self.assertAlmostEqual(Arm_Py.getPosition(), {22.5,76.32}, 3)
+        self.assertEqual(kin.position, {'x': 1.5, 'y': 2.0})
+        self.assertEqual(kin.prev_position, {'x': 22.5, 'y': 76.32})
 
 if __name__ == '__main__':
+    # unittest.main()
+
     print("Starting Kinematics")
 
     kin = Kinematics()
 
     time.sleep(1)
+
+    # enc = {'left': 0, 'right': 0}
+    
+    # # coords (15, 50)    
+    # angle = {'left': 0.973742872260748, 'right': 1.2204646692234953}
+    # enc['left'] = kin.angleToEncoder(angle=angle['left'])
+    # enc['right'] = kin.angleToEncoder(angle['right'])
+    # # {'left': -53.5301720379992, 'right': 268.1450391656766}
+
+    # print(enc)
+
+    # # coords (16, 51)
+    # angle = {'left': 0.9849743122743927, 'right': 1.197242811692461}
+    # enc['left'] = kin.angleToEncoder(angle=angle['left'])
+    # enc['right'] = kin.angleToEncoder(angle['right'])
+    # # {'left': -38.886650942633246, 'right': 237.86844415950037}
+
+    # print(enc)
 
     while 1:
         pass

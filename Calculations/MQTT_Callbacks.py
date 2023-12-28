@@ -52,32 +52,31 @@ def on_encoder(client: mqtt.Client, userdata: Kinematics, message: mqtt.MQTTMess
     if userdata.client_id not in message.topic:
         print(f"<MQTT_Callbacks>: Received ENCODER message on topic {message.topic}: {message.payload}")
 
-        if "trainee" in message.topic:
+        if "trainee" in message.topic or "trainer" in message.topic:
             # Convert JSON Message to Dict
             encoder_payload = json.loads(message.payload.decode())
-            print(f"    Updated 'trainee' encoder value: {message.payload.decode()}")
+            # print(f"    Updated 'trainee' encoder value: {message.payload.decode()}")
 
             # Convert encoder value to angle radians
             userdata.updateTheta(
                 userdata.encoderToAngle(encoder_payload["left"]), 
                 userdata.encoderToAngle(encoder_payload["right"]))
 
-            # TODO: Remove
-            print(f"    After Encoder to Angle 'trainee' Angle value: {userdata.theta} radians")
-
             # Get Position from Angles
             new_position = Kinematic_Equations.forward_kinematics(userdata.theta["left"], 
                                                                   userdata.theta["right"],
                                                                   userdata.position['y'])
             userdata.updatePosition(new_position['x'], 
-                                               new_position['y'])
-           
-            # TODO: Remove
-            print(f"    Updated 'trainee' position value: {userdata.position}")
+                                    new_position['y'])
 
+            # Get Change in position
+            change_position = {}
+            change_position['x'] = userdata.prev_position['x'] - userdata.position['x']
+            change_position['y'] = userdata.prev_position['y'] - userdata.position['y']
+            
             # Forward new position to Virtual Environment
             userdata.mqttClient.publish(topic='position', 
-                             payload=json.dumps(userdata.position), 
+                             payload=json.dumps(change_position), 
                              qos=1)
 
 def on_current(client: mqtt.Client, userdata: MQTT_Client, message: mqtt.MQTTMessage):
