@@ -142,19 +142,23 @@ public class MQTT_Client {
         await mqttClient.SubscribeAsync(mqttClientSubscribeOptions, CancellationToken.None);
     }
 
-    public async Task Unsubscribe() {
-        
+    /**
+     * Unsubscribe from a Topic
+     * 
+     * topic: String for the name of the topic that you are unsubscribing from
+     */
+    public async Task Unsubscribe(string topic) {
+        // Setup Unsubscribe Options
+        var mqttClientUnsubscribeOptions = new MqttClientUnsubscribeOptionsBuilder()
+                .WithTopicFilter(topic)
+                .Build();
+
+        // Unsubscribe from the Topic
+        await mqttClient.UnsubscribeAsync(mqttClientUnsubscribeOptions, CancellationToken.None);
     }
 
     public void AddMessageCallback(Func<MqttApplicationMessageReceivedEventArgs, Task> OnApplicationMessageReceivedAsync) {
         mqttClient.ApplicationMessageReceivedAsync += OnApplicationMessageReceivedAsync;
     }
-
-    // public async Task OnEncoder(MqttApplicationMessageReceivedEventArgs eventArgs) {
-    //     if (eventArgs.ApplicationMessage.Topic.Contains("encoder")) {
-    //         Debug.Log("Received 'Encoder' message: ");
-    //         Debug.Log(eventArgs.ApplicationMessage.ConvertPayloadToString());
-    //     }
-    // }
 }
 

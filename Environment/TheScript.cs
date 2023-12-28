@@ -84,13 +84,15 @@ public class TheScript : MonoBehaviour
      *        So how do we convert the {x, y} coord value to just move towards that position
      *        So this value is the relative value on how far to move. So we would need to keep track of the current position
      *        and then update the position to just be the relative difference
+     * We will need to actually test the arm to see how this works but this is what I ended up doing:
+     *   We use the difference in position change and that gets turned into the force so if there is no change it does not move
      */
     public void MQTT_Update(float posX, float posY) {
         Debug.Log("Update Position: {" + posX + ", " + posY + "}");
         this.posX = posX;
         this.posY = posY;
 
-        mqttFlag = true;
+        // mqttFlag = true;
     }
 
     async void Start()
@@ -107,18 +109,18 @@ public class TheScript : MonoBehaviour
         // Connect MQTT Client and Subscribe to Position Topic
         try {
             await mqttClient.Connect("LAPTOP-HL4N9U5Q", "./Assets/Scripts/certs/ca-root-cert.crt");
-            await mqttClient.Subscribe("position/kin", 1);
+            await mqttClient.Subscribe("position/kin", 2);
         } catch (Exception ex) {
             Debug.Log($"An error occurred: {ex.Message}");
         }
     }
 
-    void Update()
+    void FixedUpdate()
     {
-        if (!mqttFlag) {
-            posX = Input.GetAxisRaw("Mouse X"); // Movement of the mouse in the Y direction
-            posY = Input.GetAxisRaw("Mouse Y"); // Movement of the mouse in the X direction
-        }
+        // if (!mqttFlag) {
+        //     posX = Input.GetAxisRaw("Mouse X"); // Movement of the mouse in the Y direction
+        //     posY = Input.GetAxisRaw("Mouse Y"); // Movement of the mouse in the X direction
+        // }
 
         movementInput = new Vector3(0f, posX, posY);
         
@@ -143,12 +145,7 @@ public class TheScript : MonoBehaviour
         ScalpelMovement();
         Bounds();
         PrintToScreen();
-
-        // Reset Flag on every frame
-        // QUESTION: Will this mean that it will go to the mouse position between messages though?
-        mqttFlag = false;
     }
-
 
     private void OnTriggerEnter(Collider other)
     {
@@ -187,37 +184,31 @@ public class TheScript : MonoBehaviour
 
         if (IsInContactWithTag("Chest"))
         {
-                blood.Play();
-                caseContactNumber = "2";
-                playerRb.constraints = RigidbodyConstraints.FreezePositionX; //constrain scalpel movement upon collision
-                speed = scalpelContactSpeed; //reduce scalpel speed to mimic cutting
+            blood.Play();
+            caseContactNumber = "2";
+            playerRb.constraints = RigidbodyConstraints.FreezePositionX; //constrain scalpel movement upon collision
+            speed = scalpelContactSpeed; //reduce scalpel speed to mimic cutting
         } 
-
-
         else if (IsInContactWithTag("Bone"))
-            {
-                caseContactNumber = "3";
-                playerRb.constraints = RigidbodyConstraints.FreezePositionX;
-                speed = boneContactSpeed;
-                blood.Stop();
-            }
-
-
+        {
+            caseContactNumber = "3";
+            playerRb.constraints = RigidbodyConstraints.FreezePositionX;
+            speed = boneContactSpeed;
+            blood.Stop();
+        }
         else 
-            {
-                blood.Stop(); // Stop the blood simulation
-                caseContactNumber = "1";
-                playerRb.constraints = RigidbodyConstraints.None;
-                speed = noScalpelContactSpeed; // Set regular speed for case 1
-            }
+        {
+            blood.Stop(); // Stop the blood simulation
+            caseContactNumber = "1";
+            playerRb.constraints = RigidbodyConstraints.None;
+            speed = noScalpelContactSpeed; // Set regular speed for case 1
+        }
 
         // Reset constraints when transitioning from case 2
         if (caseContactNumber == "2" && playerRb.constraints != RigidbodyConstraints.None)
         {
             playerRb.constraints = RigidbodyConstraints.None;
         }
-
-
 
         bool IsInContactWithTag(string tag)
         {
@@ -238,6 +229,13 @@ public class TheScript : MonoBehaviour
         // Apply force based on the contact case
         switch (caseContactNumber)
         {
+            case "1": 
+                // Apply force for case 1
+                movementForce = movementInput * speed;
+                playerRb.AddRelativeForce(movementForce);
+                // playerRb.MovePosition(movementInput);
+                break;
+
             case "2":
                 // Check if the scalpel is within a certain depth range to prevent continuous forces
                 if (chestDepth < maxDepth)
@@ -247,7 +245,7 @@ public class TheScript : MonoBehaviour
                     Vector3 riseForce = Vector3.down * riseSpeed;
                     playerRb.AddRelativeForce(riseForce);
                     // Debug.Log("Rise force applied: " + riseForce.magnitude);
-            blood.Play();
+                    blood.Play();
                 }
                 break;
 
@@ -255,28 +253,22 @@ public class TheScript : MonoBehaviour
                 // Apply force for bone contact
                 movementForce = movementInput * speed;
                 playerRb.AddRelativeForce(movementForce);
-                break;
-
-        case "1": 
-            // Apply force for case 1
-                movementForce = movementInput * speed;
-                playerRb.AddRelativeForce(movementForce);
+                // playerRb.MovePosition(movementInput);
                 break;
 
             default:
                 // Apply force for other cases
                 movementForce = movementInput * speed;
                 playerRb.AddRelativeForce(movementForce);
-            break;
+                // playerRb.MovePosition(movementInput);
+                break;
         }
 
 
         // Print the force magnitude to the console
-        // Debug.Log("Force applied: " + movementForce.magnitude);
+        Debug.Log("Force applied: " + movementForce.magnitude);
 
-        GetComponent<Rigidbody>().AddRelativeForce(movementInput * speed);
-
-
+        // GetComponent<Rigidbody>().AddRelativeForce(movementInput * speed);
     }
 
 
@@ -318,7 +310,7 @@ public class TheScript : MonoBehaviour
     //A function to print the contact case number to the console, this is helpful for debugging but can be omitted
     void PrintToScreen()
     {
-        // Debug.Log("case " + caseContactNumber);
+        Debug.Log("case " + caseContactNumber);
     }
 }
 
