@@ -120,6 +120,8 @@ void on_data(void* handler_args, esp_event_base_t base, int32_t event_id, void* 
     sprintf(eventTopic, "%.*s", event->topic_len, event->topic);
     sprintf(eventData, "%.*s", event->data_len, event->data);
 
+    // Serial.printf("Received message on %s: %s\n", eventTopic, eventData);
+
     // Make sure it is a DATA message and not from yourself
     if (event->event_id == MQTT_EVENT_DATA && !strstr(eventTopic, arm_client->getClientId())) {
         Serial.print("<ARM>: MQTT_EVENT_DATA: ");
