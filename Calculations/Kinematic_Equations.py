@@ -1,12 +1,14 @@
-import os
-import time
-import json
 import math
+import unittest
 import numpy as np
 
-ARM_LENGTH_A = 1
-ARM_LENGTH_B = 1
-ARM_WIDTH = 1
+ARM_LENGTH_A = 90 # First Link Length (mm)
+ARM_LENGTH_B = 70 # Second Link Length (mm)
+ARM_WIDTH = 45 # Distance Between Shafts (mm)
+
+# TODO: HANDLE THE ERROR STATES
+# Such as acos must be -1 <= value <= 1
+# These should also be tested in unit tests
 
 def forward_kinematics(theta1, theta2, previous_y):
     """
@@ -166,3 +168,30 @@ def transpose_jacobian(theta1, theta2, current_y):
     ])
 
     return J_T
+
+class TestKinematic_Equations(unittest.TestCase):
+    """
+    The TestKinematicMethods class contains unit tests for the methods in the Kinematics class.
+    """
+    def test_forward_kinematics(self):
+        ret = forward_kinematics(1.0148, 1.0148, 76.32)
+        self.assertAlmostEqual(ret['x'], 22.5, 3)
+        self.assertAlmostEqual(ret['y'], 76.4437, 3) 
+
+    def test_inverse_kinematics(self):
+        ret = inverse_kinematics(22.5, 76.4)
+        self.assertAlmostEqual(ret['left'], 1.0148, 4)
+        self.assertAlmostEqual(ret['right'], 1.0148, 4)
+
+    # def test_jacobian(self):
+    #     self.assertAlmostEqual(jacobian(1.0148, 1.0148, 76.32), {}, 3)
+
+    # def test_transpose_jacobian(self):
+        # self.assertAlmostEqual(transpose_jacobian(1.0148, 1.0148, 76.32), {}, 3)
+
+if __name__ == '__main__':
+    unittest.main()
+
+    # angle = {'left': 0, 'right': 0}
+    # angle = inverse_kinematics(16.0, 51.0)
+    # print(angle)

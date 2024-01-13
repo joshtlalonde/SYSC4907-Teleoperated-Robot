@@ -6,8 +6,6 @@ import paho.mqtt.client as mqtt
 
 # TODO: Create a Logger??
 
-
-# TODO: If we were to have the kinematics CLASS connected into this then we can update it directly within the message functions
 class MQTT_Client:
     def __init__(self, cert_path: str, client_id: str = None): 
         # Import MQTT_Callbacks, must be here due to circular dependency
@@ -120,16 +118,59 @@ if __name__ == "__main__":
     test_curr = {'left': 0, 'right': 0}
     test_pos = {'x': 0, 'y': 0}
 
-    while(1):
-        
+    # while(1):
+    #     if test_enc['left'] > 8000:
+    #         test_enc['left'] = 0
+    #         test_enc['right'] = 200
 
-        # Take turns publishing
-        print("Publish Client 1")
-        client1.publish(f"encoder", json.dumps(test_enc), qos=1)
-        # client1.publish(f"current/{client1.client_id}", json.dumps(client1.test_curr), qos=1)
-        # client1.publish(f"position/{client1.client_id}", json.dumps(client1.test_pos), qos=1)
+    #     test_enc['left'] = test_enc['left'] - 20
+    #     test_enc['right'] = test_enc['right'] + 20
+
+    #     # Take turns publishing
+    #     print("Publish Client 1")
+    #     client1.publish(f"encoder", json.dumps(test_enc), qos=1)
+    #     # client1.publish(f"current/{client1.client_id}", json.dumps(client1.test_curr), qos=1)
+    #     # client1.publish(f"position/{client1.client_id}", json.dumps(client1.test_pos), qos=1)
     
-        time.sleep(5)
+    #     time.sleep(5)
+
+    while 1:
+        client1.publish(f"encoder", json.dumps(test_enc), qos=1)
+        test_enc = {'left': -20, 'right': 20}
+        time.sleep(0.1)
+        client1.publish(f"encoder", json.dumps(test_enc), qos=1)
+        test_enc = {'left': -20, 'right': 20}
+        time.sleep(0.1)
+        client1.publish(f"encoder", json.dumps(test_enc), qos=1)
+        test_enc = {'left': -10, 'right': 20}
+        time.sleep(0.1)
+        client1.publish(f"encoder", json.dumps(test_enc), qos=1)
+        test_enc = {'left': 0, 'right': 20}
+        time.sleep(0.1)
+        client1.publish(f"encoder", json.dumps(test_enc), qos=1)
+        test_enc = {'left': 0, 'right': 20}
+        time.sleep(0.1)
+        client1.publish(f"encoder", json.dumps(test_enc), qos=1)
+        test_enc = {'left': 10, 'right': 30}
+        time.sleep(0.1)
+        client1.publish(f"encoder", json.dumps(test_enc), qos=1)
+        test_enc = {'left': 20, 'right': 30}
+        time.sleep(0.1)
+        client1.publish(f"encoder", json.dumps(test_enc), qos=1)
+        test_enc = {'left': 30, 'right': 30}
+        time.sleep(0.1)
+        client1.publish(f"encoder", json.dumps(test_enc), qos=1)
+        test_enc = {'left': 20, 'right': 20}
+        time.sleep(0.1)
+        client1.publish(f"encoder", json.dumps(test_enc), qos=1)
+        test_enc = {'left': 10, 'right': 10}
+        time.sleep(0.1)
+        client1.publish(f"encoder", json.dumps(test_enc), qos=1)
+        test_enc = {'left': 0, 'right': 0}
+        time.sleep(0.1)
+        client1.publish(f"encoder", json.dumps(test_enc), qos=1)
+        test_enc = {'left': -10, 'right': 10}
+        time.sleep(0.1)
 
     # Disconnect clients
     client1.disconnect()
