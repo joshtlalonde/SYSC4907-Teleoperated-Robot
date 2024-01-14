@@ -1,6 +1,7 @@
 
 #include "Arm.h"
 #include "ArduinoJson.h"
+#include "MQTTClient.h"
 
 Arm::Arm(MQTTClient& mqtt_client)
         : mqtt_client(mqtt_client) 
@@ -72,4 +73,22 @@ void Arm::current_jsonify(char* current_val_str) {
   json["right"] = this->current_right;
 
   serializeJson(json, current_val_str, 50);
+}
+
+bool Arm::publish_encoder(MQTTClient mqttClient) {
+  char topic[250], encoder_val_str[250];
+  this->encoder_jsonify(encoder_val_str);
+
+  sprintf(topic, "encoder/%s", this->getClientId());
+  mqttClient.publish(topic, encoder_val_str, 0, 2, 0);
+  return true;
+}
+
+bool Arm::publish_current(MQTTClient mqttClient) {
+  char topic[250], current_val_str[250];
+  this->current_jsonify(current_val_str);
+
+  sprintf(topic, "current/%s", this->getClientId());
+  mqttClient.publish(topic, current_val_str, 0, 2, 0);
+  return true;
 }

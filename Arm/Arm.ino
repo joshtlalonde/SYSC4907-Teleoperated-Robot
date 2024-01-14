@@ -8,7 +8,7 @@ byte ETHERNET_MAC[] = { 0x40, 0x8D, 0x5C, 0xE7, 0xA5, 0x98 };
 // The IP address for the ethernet shield:
 IPAddress ETHERNET_IP(192, 168, 2, 147); 
 // The IP address of the mosquitto instance
-char* MOSQUITTO_IP = "172.17.49.245"; //"192.168.2.18"; 
+char* MOSQUITTO_IP = "192.168.137.1"; //"192.168.2.18"; //"172.17.49.245";
 // The port of the Mosquitto instance
 int MOSQUITTO_PORT = 8883;//1883;
 
@@ -44,6 +44,9 @@ void setup()
   mqttClient.start();
 
   // Attach Callback for Data messages
+  /* TODO: Cannot use the on_data event because it will be called for every send it makes
+   *       this will cause the esp to crash
+   */
   mqttClient.add_message_callback(MQTT_EVENT_DATA, on_data, (void*) &arm, "on_data");
 
   // Subscribe to Encoder Topic
@@ -53,6 +56,7 @@ void setup()
 }
 
 void loop () {
+/*
   Serial.printf("<ARM>: Encoder --> Left = %f, Right = %f\n", arm.getEncoderLeft(), arm.getEncoderRight());
   Serial.printf("<ARM>: Current --> Left = %f, Right = %f\n", arm.getCurrentLeft(), arm.getCurrentRight());
   delay(1000);
@@ -75,4 +79,44 @@ void loop () {
   mqttClient.publish(topic, current_val_str, 0, 1, 0);
 
   delay(1000);
+*/
+
+// Simulating Values constantly updating
+  arm.setEncoderLeft(-20); arm.setEncoderRight(20);
+  delay(100);
+  arm.publish_encoder(mqttClient);
+  arm.setEncoderLeft(-20); arm.setEncoderRight(20);
+  delay(100);
+  arm.publish_encoder(mqttClient);
+  arm.setEncoderLeft(-10); arm.setEncoderRight(20);
+  delay(100);
+  arm.publish_encoder(mqttClient);
+  arm.setEncoderLeft(0); arm.setEncoderRight(20);
+  delay(100);
+  arm.publish_encoder(mqttClient);
+  arm.setEncoderLeft(0); arm.setEncoderRight(20);
+  delay(100);
+  arm.publish_encoder(mqttClient);
+  arm.setEncoderLeft(10); arm.setEncoderRight(30);
+  delay(100);
+  arm.publish_encoder(mqttClient);
+  arm.setEncoderLeft(20); arm.setEncoderRight(30);
+  delay(100);
+  arm.publish_encoder(mqttClient);
+  arm.setEncoderLeft(30); arm.setEncoderRight(30);
+  delay(100);
+  arm.publish_encoder(mqttClient);
+  arm.setEncoderLeft(20); arm.setEncoderRight(20);
+  delay(100);
+  arm.publish_encoder(mqttClient);
+  arm.setEncoderLeft(10); arm.setEncoderRight(10);
+  delay(100);
+  arm.publish_encoder(mqttClient);
+  arm.setEncoderLeft(0); arm.setEncoderRight(0);
+  delay(100);
+  arm.publish_encoder(mqttClient);
+  arm.setEncoderLeft(-10); arm.setEncoderRight(10);
+  delay(100);
+  arm.publish_encoder(mqttClient);
+
 }

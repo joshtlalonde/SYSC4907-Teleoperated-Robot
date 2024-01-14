@@ -27,8 +27,27 @@ class Arm {
 
         char* getClientId();
 
+        /*
+         * Used to JSONify the current encoder value. Allows you to be able to send the encoder value of MQTT
+         * The value is written to the encoder_val_str
+         * 
+         * Input: encoder_val_str = pointer to a string, will have the JSON value written to it
+         */
         void encoder_jsonify(char* encoder_val_str);
+
+        /*
+         * Used to JSONify the current current value. Allows you to be able to send the current value of MQTT
+         * The value is written to the encoder_val_str
+         * 
+         * Input: encoder_val_str = pointer to a string, will have the JSON value written to it
+         */
         void current_jsonify(char* current_val_str);
+
+        // Publish to the Encoder Topic
+        bool publish_encoder(MQTTClient mqttClient);
+
+        // Publish to the Current Topic
+        bool publish_current(MQTTClient mqttClient);
 };
 
 #endif
