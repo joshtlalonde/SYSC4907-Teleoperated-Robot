@@ -1,90 +1,128 @@
-// #include "Motor_Control.h"
-// #include <QuadratureEncoder.h>
-// // must also have enableInterrupt.h library
+#include "Arduino.h"
+// #include <EnableInterrupt.h>
+#include "Encoder.h"
+#include "Current_Sensor.h"
+#include "Motor_Control.h"
 
-// Motor_Control::Motor_Control(Encoders& encoder, 
-//                              int pwmChannel, int frequency, 
-//                              int resolution, int pwmPin) 
-//                              : encoder(encoder)
-// {
-//     this->encoder = encoder;
-//     // Current Direction is STOPPED
-//     this->currentDir = 0;
-//     // Current PWM is STOPPED
-//     this->currentPWM = 0;
-// }
+Motor_Control::Motor_Control(Encoder& encoder, Current_Sensor& currentSensor, int pwmChannel, 
+                             int frequency, int resolution, 
+                             int pwmPin, int dirPin, bool verbose) 
+                             : encoder(encoder), currentSensor(currentSensor)
+{
+    this->encoder = encoder;
+    this->currentSensor = currentSensor;
 
-// void Motor_Control::setMotor(int dir, int pwmVal, 
-//                              int pwm, int dir1)
-// {
-//     analogWrite(pwm,pwmVal); 
-//     if(dir == 1){   // Spins in CW direction
-//         digitalWrite(dir1, LOW); 
-//     }
-//     else if(dir == -1){   // Spins in CCW direction
-//         digitalWrite(dir1, HIGH);
-//     }
-//     else{
-//         analogWrite(PWM, 0); //Do not spin motor
-//     }  
-// }
+    // Current Direction is STOPPED
+    this->currentDir = 0;
+    // Current PWM is STOPPED
+    this->currentPWM = 0;
 
-// void PID_Encoder(int target){
-//     // Get current Encoder Count 
-//     currentLeftEncoderCount = Encoder.getEncoderCount();
-//     // time difference
-//     long currT = micros();
-//     float deltaT = ((float) (currT - prevT))/( 1.0e6 );
-//     prevT = currT;
+    /* Set Pin Defintions */
+    this->pwmPin = pwmPin;
+    this->dirPin = dirPin;
+    // Set pinMode to OUTPUT
+    pinMode(pwmPin, OUTPUT);
+    pinMode(dirPin, OUTPUT);
 
-//     // PID Constants
-//     float kp = 1; 
-//     float kd = 0.75;
+    /* PWM Configuration */
+    // Configuration of channel with the chosen frequency and resolution
+    ledcSetup(pwmChannel, frequency, resolution);
+    // Assigns the PWM channel to PWM_R pin
+    ledcAttachPin(pwmPin, pwmChannel);
+    // Create the selected output voltage
+    ledcWrite(pwmChannel, 127); // 1.65 V
 
-//     // error 
-//     int e = currentLeftEncoderCount - target; 
+    this->verbose = verbose;
+}
 
-//     // derivative
-//     float dedt = (e-eprev)/(deltaT);
+void Motor_Control::setMotor(int direction, int pwmVal)
+{
+    if (this->verbose)
+        Serial.printf("Setting Motor Direction %s and PWM to %d\n", 
+                      direction == 1 ? "CW" : "CCW", pwmVal);
+    
+    if(direction == 1){   // Spins in CW direction
+        digitalWrite(this->dirPin, LOW); 
+        analogWrite(this->pwmPin, pwmVal); 
+    }
+    else if(direction == -1){   // Spins in CCW direction
+        digitalWrite(this->dirPin, HIGH);
+        analogWrite(this->pwmPin, pwmVal); 
+    }
+    else{
+        analogWrite(this->pwmPin, 0); //Do not spin motor
+    }  
+}
 
-//     // Control Signal 
-//     float u = kp*e + kd*dedt;
+void Motor_Control::PID_Encoder(int target){
+    // Get Current Encoder Count 
+    int currEncoderCount = this->encoder.getCount();
+    /** TODO: Check if the encoder count is valid
+     * if (currentEncoderCount "< or >" max/min value) {}
+     */
 
-//     // Set motor power
-//     // motor power
-//     float pwr = fabs(u);
-//     if(pwr > 10) { 
-//     // Note: We may have to increase the max speed. 
-//     // Its set slow here to ensure we dont damage anything
-//         pwr = 10;
-//     }
+    // Get Current Time
+    long currTime = micros();
+    // Get change in time
+    float deltaT = ((float) (currTime - this->encoder.getPrevTime())) / (float)( 1.0e6 ); 
+    /**
+     * QUESTION: Why divide by 1.0e6?
+     * I assume to convert microseconds to seconds but why? 
+     * Do we loose accuracy with this? ('float' values hold less bits esspecially decimals)
+     */
+    // Set Previous Time to Current Time
+    this->encoder.setPrevTime(currTime);
 
-//     // motor direction
-//     int dir = 1;
-//     if(u < 0){
-//         dir = -1;
-//     }
-//     // signal the motor
-//     setMotor(dir,pwr,PWM,DIR);
-// }
+    // PID Constants
+    float kp = 1; 
+    float kd = 0.75;
+    // Get Error 
+    int error = currEncoderCount - target; 
+    // derivative
+    float dedt = ((float) (error - this->encoder.getPrevError())) / (float)(deltaT);
+    // Set Previous Error to Current Error
+    this->encoder.setPrevError(error);
 
-// void PID_Current (int tar_current) {
-//     // Call get current function in currentSensor class
-//     float current = currentSensor.getCurrent(); 
+    // Control Signal 
+    float u = (kp * error) + (kd * dedt);
 
-//     // PID Constants
-//     float kp = 1; 
+    // Update Motor Speed
+    float motorPWM = fabs(u);
+    if(motorPWM > 10) { 
+        /** NOTE: We may have to increase the max speed. 
+         * Its set slow here to ensure we dont damage anything
+         */
+        motorPWM = 10;
+    }
 
-//     // error 
-//     int e = current - tar_Current; 
+    // Set Motor Direction
+    int motorDir = 1;
+    if (u < 0) {
+        motorDir = -1;
+    }
+
+    // Update Motor Speed and Direction
+    this->setMotor(motorDir, motorPWM);
+}
+
+/** TODO: Still to be implemented */
+void Motor_Control::PID_Current(float target) {
+    // Call get current function in currentSensor class
+    float current = this->currentSensor.getCurrent(); 
+
+    // PID Constants
+    float kp = 1; 
+
+    // error 
+    int e = current - target; 
   
-//     // Control Signal 
-//     float u = kp*e; 
+    // Control Signal 
+    float u = kp * e; 
 
-//     // Set motor power
-//     // motor power
-//     float pwr = fabs(u);
-//     if(pwr > 255) {
-//         pwr = 255;
-//     }
-//  }
+    // Set motor power
+    // motor power
+    float pwr = fabs(u);
+    if (pwr > 255) {
+        pwr = 255;
+    }
+ }
