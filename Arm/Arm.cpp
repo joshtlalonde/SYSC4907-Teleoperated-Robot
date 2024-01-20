@@ -79,8 +79,8 @@ bool Arm::publish_encoder(MQTTClient mqttClient) {
   char topic[250], encoder_val_str[250];
   this->encoder_jsonify(encoder_val_str);
 
-  sprintf(topic, "encoder/%s", this->getClientId());
-  mqttClient.publish(topic, encoder_val_str, 0, 2, 0);
+  sprintf(topic, "encoder/%s", mqttClient.getClientId());//this->getClientId());
+  mqttClient.publish(topic, encoder_val_str, 0, 1, 0);
   return true;
 }
 
@@ -89,6 +89,6 @@ bool Arm::publish_current(MQTTClient mqttClient) {
   this->current_jsonify(current_val_str);
 
   sprintf(topic, "current/%s", this->getClientId());
-  mqttClient.publish(topic, current_val_str, 0, 2, 0);
+  mqttClient.publish(topic, current_val_str, 0, 1, 0);
   return true;
 }
