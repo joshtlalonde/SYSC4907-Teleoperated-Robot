@@ -22,9 +22,48 @@ Wireless wifi;
 MQTTClient mqttClient("trainee", ether, wifi);
 Arm arm(mqttClient);
 
+void setup_menu() {
+  char inputString[100];
+  char inChar;
+  int index = 0;
+  // TODO: Input IP Address
+
+
+  // Input ClientID
+  Serial.println("Select ClientID: ");
+  Serial.printf("\t[1]: 'trainee'\n");
+  Serial.printf("\t[2]: 'trainer'\n");
+  while (inChar != '\n') {
+    while(Serial.available()) {
+      inChar = (char)Serial.read();
+      inputString[index] = inChar;
+      index++;
+    }
+  }
+  
+  // Get Input 
+  if (strcmp(inputString, "1\n") == 0) {
+    Serial.println("ClientID set to 'trainee'");
+    mqttClient.setClientId("trainee");
+  } else if (strcmp(inputString, "2\n") == 0) {
+    Serial.println("ClientID set to 'trainer'");
+    mqttClient.setClientId("trainer");
+  } else {
+    Serial.println("Incorrect Selection, please select '1' or '2'");
+    setup_menu();
+  }
+}
+
 void setup()
 {
   Serial.begin(115200);
+
+  while (!Serial) { delay(1000); } // TODO: Break if too long
+
+  if (Serial) {
+    // Start Setup Menu
+    setup_menu();
+  }
 
   // Setup the broker
   if (!mqttClient.begin(SSID, PASSWORD)) {
@@ -46,6 +85,7 @@ void setup()
   // Attach Callback for Data messages
   /* TODO: Cannot use the on_data event because it will be called for every send it makes
    *       this will cause the esp to crash
+   *       Is there really a way around this though?
    */
   mqttClient.add_message_callback(MQTT_EVENT_DATA, on_data, (void*) &arm, "on_data");
 
@@ -82,41 +122,52 @@ void loop () {
 */
 
 // Simulating Values constantly updating
-  arm.setEncoderLeft(-20); arm.setEncoderRight(20);
-  delay(100);
-  arm.publish_encoder(mqttClient);
-  arm.setEncoderLeft(-20); arm.setEncoderRight(20);
-  delay(100);
-  arm.publish_encoder(mqttClient);
-  arm.setEncoderLeft(-10); arm.setEncoderRight(20);
-  delay(100);
-  arm.publish_encoder(mqttClient);
-  arm.setEncoderLeft(0); arm.setEncoderRight(20);
-  delay(100);
-  arm.publish_encoder(mqttClient);
-  arm.setEncoderLeft(0); arm.setEncoderRight(20);
-  delay(100);
-  arm.publish_encoder(mqttClient);
-  arm.setEncoderLeft(10); arm.setEncoderRight(30);
-  delay(100);
-  arm.publish_encoder(mqttClient);
-  arm.setEncoderLeft(20); arm.setEncoderRight(30);
-  delay(100);
-  arm.publish_encoder(mqttClient);
-  arm.setEncoderLeft(30); arm.setEncoderRight(30);
-  delay(100);
-  arm.publish_encoder(mqttClient);
-  arm.setEncoderLeft(20); arm.setEncoderRight(20);
-  delay(100);
-  arm.publish_encoder(mqttClient);
-  arm.setEncoderLeft(10); arm.setEncoderRight(10);
-  delay(100);
-  arm.publish_encoder(mqttClient);
-  arm.setEncoderLeft(0); arm.setEncoderRight(0);
-  delay(100);
-  arm.publish_encoder(mqttClient);
-  arm.setEncoderLeft(-10); arm.setEncoderRight(10);
-  delay(100);
-  arm.publish_encoder(mqttClient);
+  // arm.setEncoderLeft(-20); arm.setEncoderRight(20);
+  // delay(100);
+  // arm.publish_encoder(mqttClient);
+  // arm.setEncoderLeft(-20); arm.setEncoderRight(20);
+  // delay(100);
+  // arm.publish_encoder(mqttClient);
+  // arm.setEncoderLeft(-10); arm.setEncoderRight(20);
+  // delay(100);
+  // arm.publish_encoder(mqttClient);
+  // arm.setEncoderLeft(0); arm.setEncoderRight(20);
+  // delay(100);
+  // arm.publish_encoder(mqttClient);
+  // arm.setEncoderLeft(0); arm.setEncoderRight(20);
+  // delay(100);
+  // arm.publish_encoder(mqttClient);
+  // arm.setEncoderLeft(10); arm.setEncoderRight(30);
+  // delay(100);
+  // arm.publish_encoder(mqttClient);
+  // arm.setEncoderLeft(20); arm.setEncoderRight(30);
+  // delay(100);
+  // arm.publish_encoder(mqttClient);
+  // arm.setEncoderLeft(30); arm.setEncoderRight(30);
+  // delay(100);
+  // arm.publish_encoder(mqttClient);
+  // arm.setEncoderLeft(20); arm.setEncoderRight(20);
+  // delay(100);
+  // arm.publish_encoder(mqttClient);
+  // arm.setEncoderLeft(10); arm.setEncoderRight(10);
+  // delay(100);
+  // arm.publish_encoder(mqttClient);
+  // arm.setEncoderLeft(0); arm.setEncoderRight(0);
+  // delay(100);
+  // arm.publish_encoder(mqttClient);
+  // arm.setEncoderLeft(-10); arm.setEncoderRight(10);
+  // delay(100);
+  // arm.publish_encoder(mqttClient);
+
+  if (mqttClient.getClientId() == "trainee") {
+    arm.setEncoderLeft(arm.getEncoderLeft() + 1); arm.setEncoderRight(arm.getEncoderRight() + 1);
+    arm.publish_encoder(mqttClient);
+    delay(2000);
+  } 
+  else if (mqttClient.getClientId() == "trainer") {
+    arm.setEncoderLeft(arm.getEncoderLeft() + 100); arm.setEncoderRight(arm.getEncoderRight() + 100);
+    arm.publish_encoder(mqttClient);
+    delay(1000);
+  }
 
 }

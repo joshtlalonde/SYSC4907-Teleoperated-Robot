@@ -124,7 +124,7 @@ void on_data(void* handler_args, esp_event_base_t base, int32_t event_id, void* 
 
     // Make sure it is a DATA message and not from yourself
     if (event->event_id == MQTT_EVENT_DATA && !strstr(eventTopic, arm_client->getClientId())) {
-        Serial.print("<ARM>: MQTT_EVENT_DATA: ");
+        Serial.print("<ARM>: MQTT_EVENT_DATA: "); // TODO: REMOVE to save processing power
         Serial.printf("Recieved message on topic=%s with data: %s\n", 
                       eventTopic, eventData);
 
@@ -137,7 +137,6 @@ void on_data(void* handler_args, esp_event_base_t base, int32_t event_id, void* 
         if (strstr(eventTopic, "encoder")) { 
           float left = json["left"], right = json["right"];
 
-          Serial.printf("Update Encoder --> Left: %f, Right: %f\n", left, right);
           arm_client->setEncoderLeft(left);
           arm_client->setEncoderRight(right);
         } 
