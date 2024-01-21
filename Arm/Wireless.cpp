@@ -10,6 +10,20 @@ IPAddress Wireless::getIpAddr() {
   return WiFi.localIP();
 }
 
+void Wireless::getMacAddr(byte* mac) {
+  WiFi.macAddress(mac);
+}
+
+void Wireless::getMacAddr(char* mac) {
+  byte mac_byte[6];
+
+  WiFi.macAddress(mac_byte);
+
+  sprintf(mac, "%02x:%02x:%02x:%02x:%02x:%02x", 
+         mac_byte[0], mac_byte[1], mac_byte[2],
+         mac_byte[3], mac_byte[4], mac_byte[5]);
+}
+
 bool Wireless::begin(char* ssid, char* password) {
   int loop = 0;
   Serial.printf("<Wireless>: Attempting to connect to %s...", ssid);
