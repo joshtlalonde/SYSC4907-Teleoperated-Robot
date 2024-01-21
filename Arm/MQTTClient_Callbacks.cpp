@@ -134,11 +134,9 @@ void on_data(void* handler_args, esp_event_base_t base, int32_t event_id, void* 
         deserializeJson(json, eventData);
 
         // Check which type of DATA message
-        if (strstr(eventTopic, "encoder")) { 
-          float left = json["left"], right = json["right"];
-
-          arm_client->setEncoderLeft(left);
-          arm_client->setEncoderRight(right);
+        if (strstr(eventTopic, "encoder")) {
+          arm_client->setEncoderLeft(json["left"]);
+          arm_client->setEncoderRight(json["right"]);
         } 
         else if (strstr(eventTopic, "current")) {
           arm_client->setCurrentLeft(json["left"]);

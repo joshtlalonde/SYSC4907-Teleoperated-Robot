@@ -1,6 +1,9 @@
 #ifndef MOTOR_CONTROL_h
 #define MOTOR_CONTROL_h
 
+#include "Encoder.h"
+#include "Current_Sensor.h"
+
 //Create a Motor Control Class
 class Motor_Control {
     private:

@@ -1,12 +1,8 @@
-#include "Arduino.h"
+#include <Arduino.h>
 #include "Encoder.h"
 
-Encoder::Encoder(Encoders& encoderObj, 
-                 int pinA, int pinB) 
-                 : encoderObj(encoderObj)
+Encoder::Encoder(int pinA, int pinB)
 {
-    this->encoderObj = encoderObj;
-
     // Initialize Previous Time
     this->prevTime = 0;
     // Initialize Previous Error
@@ -15,10 +11,13 @@ Encoder::Encoder(Encoders& encoderObj,
     /* Set Pin Defintions */
     pinMode(pinA, INPUT);
     pinMode(pinB, INPUT);
+
+    // Setup ESPEncoder
+    this->encoderObj.attachFullQuad(pinA, pinB);
 }
 
 int Encoder::getCount() {
-    return this->encoderObj.getEncoderCount();
+    return this->encoderObj.getCount();
 }
 
 float Encoder::getPrevTime() {

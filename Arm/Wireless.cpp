@@ -29,7 +29,7 @@ bool Wireless::begin(char* ssid, char* password) {
   Serial.printf("<Wireless>: Attempting to connect to %s...", ssid);
 
   do {
-    if (loop > 5) {
+    if (loop > 10) {
       Serial.println(" FAILED TO CONNECT");
       return false;
     }
