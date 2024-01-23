@@ -93,6 +93,27 @@ void setup()
 int set = 0;
 
 void loop () {
+  /** TODO: Build out the functionality of the ARM 
+   * 
+   * On every iteration of the loop the device will 
+   * get its current encoder value and send a message to update it.
+   * It should only send the message if it the encoder value has changed within 100 points (adjustable value?)
+   *  (Create a function for this??)
+   *
+   *  How we will keep track of receiving messages will be with a FLAG.
+   * When we get a new TARGET (from MQTT) put up a flag. And this mean enter the PID_ENCODER loop.
+   * Then before it leaves the while loop reset the flag. 
+   *
+   * There is nothing else... the only other thing the arm will need 
+   * to do is receive messages and move to that position. But this is 
+   * built directly into the MQTT protocol and the ARM does not need to
+   * worry about it
+  */
+
+
+
+
+
 /*
   Serial.printf("<ARM>: Encoder --> Left = %f, Right = %f\n", arm.getEncoderLeft(), arm.getEncoderRight());
   Serial.printf("<ARM>: Current --> Left = %f, Right = %f\n", arm.getCurrentLeft(), arm.getCurrentRight());
@@ -117,78 +138,5 @@ void loop () {
 
   delay(1000);
 */
-
-// Simulating Values constantly updating
-  // arm.setEncoderLeft(-20); arm.setEncoderRight(20);
-  // delay(100);
-  // arm.publish_encoder(mqttClient);
-  // arm.setEncoderLeft(-20); arm.setEncoderRight(20);
-  // delay(100);
-  // arm.publish_encoder(mqttClient);
-  // arm.setEncoderLeft(-10); arm.setEncoderRight(20);
-  // delay(100);
-  // arm.publish_encoder(mqttClient);
-  // arm.setEncoderLeft(0); arm.setEncoderRight(20);
-  // delay(100);
-  // arm.publish_encoder(mqttClient);
-  // arm.setEncoderLeft(0); arm.setEncoderRight(20);
-  // delay(100);
-  // arm.publish_encoder(mqttClient);
-  // arm.setEncoderLeft(10); arm.setEncoderRight(30);
-  // delay(100);
-  // arm.publish_encoder(mqttClient);
-  // arm.setEncoderLeft(20); arm.setEncoderRight(30);
-  // delay(100);
-  // arm.publish_encoder(mqttClient);
-  // arm.setEncoderLeft(30); arm.setEncoderRight(30);
-  // delay(100);
-  // arm.publish_encoder(mqttClient);
-  // arm.setEncoderLeft(20); arm.setEncoderRight(20);
-  // delay(100);
-  // arm.publish_encoder(mqttClient);
-  // arm.setEncoderLeft(10); arm.setEncoderRight(10);
-  // delay(100);
-  // arm.publish_encoder(mqttClient);
-  // arm.setEncoderLeft(0); arm.setEncoderRight(0);
-  // delay(100);
-  // arm.publish_encoder(mqttClient);
-  // arm.setEncoderLeft(-10); arm.setEncoderRight(10);
-  // delay(100);
-  // arm.publish_encoder(mqttClient);
-
-  // if (mqttClient.getClientId() == "trainee") {
-  //   arm.setEncoderLeft(arm.getEncoderLeft() + 1); arm.setEncoderRight(arm.getEncoderRight() + 1);
-  //   arm.publish_encoder(mqttClient);
-  //   delay(2000);
-  // } 
-  // else if (mqttClient.getClientId() == "trainer") {
-  //   arm.setEncoderLeft(arm.getEncoderLeft() + 100); arm.setEncoderRight(arm.getEncoderRight() + 100);
-  //   arm.publish_encoder(mqttClient);
-  //   delay(1000);
-  // }
-
-  // if (!set) {
-  //   Serial.println("Calling PID_Encoder(4000) on Left Motor");
-    motorL.PID_Encoder(4000);
-  //   set = 1;
-  // }
-  
-  // motorR.PID_Encoder(4000);
-  
-  // int targetL = 0; 
-
-  // while (targetL < 8000) {
-  //   motorL.PID_Encoder(targetL);
-  //   targetL = targetL + 100;
-  //   Serial.println(targetL);
-  //   delay(1000);
-  // }
-
-  // while (targetL > -8000) {
-  //   motorL.PID_Encoder(targetL);
-  //   targetL = targetL - 100;
-  //   Serial.println(targetL);
-  //   delay(1000);
-  // }
 
 }
