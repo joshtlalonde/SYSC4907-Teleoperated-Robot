@@ -66,7 +66,7 @@ void Motor_Control::PID_Encoder(int target){
     int currEncoderCount = 0;
 
     /** TODO: Need to figure out which values to use here to hit the target and the stop */
-    while (abs(currEncoderCount) > abs(target) + 250 || abs(currEncoderCount) < abs(target) - 250) {
+    while (abs(this->encoder.getCount()) > abs(target) + 250 || abs(this->encoder.getCount()) < abs(target) - 250) {
         // Get Current Encoder Count 
         currEncoderCount = this->encoder.getCount();
         /** TODO: Check if the encoder count is valid
@@ -95,7 +95,9 @@ void Motor_Control::PID_Encoder(int target){
         float u = (kp * err) + (kd * dedt);
 
         // Update Motor Speed
-        float motorPWM = fabs(u);
+        float motorPWM = fabs(u); /** TODO: Determine a way to make the u value more propostanal to our range of 0 - 255 
+                                    * If this method doesn't work let's change the precision of the getCount to divide by 4.
+                                    */
         if(motorPWM > 10) { 
             /** NOTE: We may have to increase the max speed. 
             * Its set slow here to ensure we dont damage anything
