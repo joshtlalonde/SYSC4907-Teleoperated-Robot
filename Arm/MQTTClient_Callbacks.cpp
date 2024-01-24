@@ -124,7 +124,7 @@ void on_data(void* handler_args, esp_event_base_t base, int32_t event_id, void* 
 
     // Make sure it is a DATA message and not from yourself
     if (event->event_id == MQTT_EVENT_DATA && !strstr(eventTopic, arm_client->getClientId())) {
-        Serial.print("<ARM>: MQTT_EVENT_DATA: "); // TODO: REMOVE to save processing power
+        Serial.print("<MQTTClient_Callbacks>: MQTT_EVENT_DATA: "); // TODO: REMOVE to save processing power
         Serial.printf("Recieved message on topic=%s with data: %s\n", 
                       eventTopic, eventData);
 
@@ -135,12 +135,15 @@ void on_data(void* handler_args, esp_event_base_t base, int32_t event_id, void* 
 
         // Check which type of DATA message
         if (strstr(eventTopic, "encoder")) {
-          arm_client->setEncoderLeft(json["left"]);
-          arm_client->setEncoderRight(json["right"]);
+            /** TODO: Set flag and new target */
+        //   arm_client->setEncoderLeft(json["left"]);
+        //   arm_client->setEncoderRight(json["right"]);
+            arm_client->setEncoderTarget(json["left"], json["right"]);
         } 
         else if (strstr(eventTopic, "current")) {
-          arm_client->setCurrentLeft(json["left"]);
-          arm_client->setCurrentRight(json["right"]);
+            /** TODO: Set flag and new target */
+        //   arm_client->setCurrentLeft(json["left"]);
+        //   arm_client->setCurrentRight(json["right"]);
         }
      }
 }
