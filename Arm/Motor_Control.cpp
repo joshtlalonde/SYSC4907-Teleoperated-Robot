@@ -12,10 +12,8 @@ Motor_Control::Motor_Control(Encoder& encoder, Current_Sensor& currentSensor, in
     this->encoder = encoder;
     this->currentSensor = currentSensor;
 
-    // Current Direction is STOPPED
-    this->currentDir = 0;
-    // Current PWM is STOPPED
-    this->currentPWM = 0;
+    // Current Encoder Target is 0
+    this->encoderTarget = 0;
 
     /* Set Pin Defintions */
     this->pwmPin = pwmPin;
@@ -35,23 +33,43 @@ Motor_Control::Motor_Control(Encoder& encoder, Current_Sensor& currentSensor, in
     this->verbose = verbose;
 }
 
-void Motor_Control::setMotor(int direction, int pwmVal)
-{
+int Motor_Control::getEncoderCount() {
+    return this->encoder.getCount();
+}
+
+int Motor_Control::getCurrentAmps() {
+    return this->currentSensor.getCurrent();
+}
+
+void Motor_Control::setTarget(int target) {
+    this->encoderTarget = target;
+}
+
+int Motor_Control::getTarget() {
+    return this->encoderTarget;
+}
+
+void Motor_Control::setMotor(int direction, int pwmVal) {
     if (this->verbose)
         Serial.printf("Setting Motor Direction %s and PWM to %d\n", 
                       direction == 1 ? "CW" : "CCW", pwmVal);
     
-    if(direction == 1){   // Spins in CW direction
-        digitalWrite(this->dirPin, LOW); 
-        analogWrite(this->pwmPin, pwmVal); 
+    if (direction == MOTOR_DIR_CW) {   // Spins in CW direction
+        digitalWrite(this->dirPin, HIGH); 
     }
-    else if(direction == -1){   // Spins in CCW direction
-        digitalWrite(this->dirPin, HIGH);
-        analogWrite(this->pwmPin, pwmVal); 
+    else if (direction == MOTOR_DIR_CCW) {   // Spins in CCW direction
+        digitalWrite(this->dirPin, LOW);
     }
     else{
         analogWrite(this->pwmPin, 0); //Do not spin motor
-    }  
+        return; // Exit now
+    }
+
+    if (pwmVal > 255) {
+        analogWrite(this->pwmPin, 255); 
+    } else {
+        analogWrite(this->pwmPin, pwmVal); 
+    }
 }
 
 void Motor_Control::PID_Encoder(int target){

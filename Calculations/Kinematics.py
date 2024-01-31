@@ -35,11 +35,15 @@ class Kinematics:
         self.mqttClient.subscribe(topic='current/#', qos=2)
         self.mqttClient.subscribe(topic='force/#', qos=2)
 
-    # Update (x,y) Position of the Arm
-    # Input:
-    #   x: x coordinate of the Arm
-    #   y: y coordinate of the Arm
     def updatePosition(self, x: float, y: float):
+        """
+        Update (x,y) Position of the Arm
+        
+        Parameters:
+            x: x coordinate of the Arm
+            y: y coordinate of the Arm
+        """
+
         # Store the current position as the previous position
         self.prev_position = self.position.copy()
         # Update the position
@@ -47,11 +51,15 @@ class Kinematics:
         self.position['x'] = x
         self.position['y'] = y
 
-    # Update angle from the starting position of the motors
-    # Input:
-    #   left: Angle for the left motor
-    #   right: Angle for the right motor
+
     def updateTheta(self, left: float, right: float):
+        """
+        Update angle from the starting position of the motors
+        
+        Parameters:
+            left: Angle for the left motor
+            right: Angle for the right motor
+        """
         self.theta['left'] = left
         self.theta['right'] = right
 

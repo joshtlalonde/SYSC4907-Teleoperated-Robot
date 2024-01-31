@@ -23,10 +23,7 @@ void on_disconnect(void* handler_args, esp_event_base_t base, int32_t event_id, 
     
     if (event->event_id == MQTT_EVENT_DISCONNECTED) {
         Serial.print("<MQTTClient_Callbacks>: MQTT_EVENT_DISCONNECTED ");
-        Serial.printf("Client %s disconnected\n", client_id);
-
-      // Attempt WiFi Reconnect   
-        while(1) {}
+        Serial.printf("Client %s disconnected... Auto-reconnecting\n", client_id);
     }
 }
 
