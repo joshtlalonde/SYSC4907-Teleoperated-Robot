@@ -7,13 +7,14 @@
 #define MOTOR_DIR_CW 1
 #define MOTOR_DIR_CCW -1
 
+#define MIN_PWM 6
+#define MAX_PWM 200
+
 //Create a Motor Control Class
 class Motor_Control {
     private:
         Encoder encoder; 
         Current_Sensor currentSensor; // Currently not in use
-        int currentDir; 
-        int currentPWM; 
         int encoderTarget;
         int pwmPin;
         int dirPin;
@@ -24,8 +25,6 @@ class Motor_Control {
                       int pwmChannel, int frequency, int resolution, 
                       int pwmPin, int dirPin, bool verbose);
 
-        int getCurrentDir();
-        int getCurrentPWM();
         int getEncoderCount();
         int getCurrentAmps();
 
@@ -36,8 +35,8 @@ class Motor_Control {
          * 
          * int target: target value to set encoder to reach.
          */
-        void setEncoderTarget(int target);
-        int getEncoderTarget();
+        void setTarget(int target);
+        int getTarget();
 
         /** 
          * Updates the motor speed and direction

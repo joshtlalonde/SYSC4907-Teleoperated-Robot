@@ -5,8 +5,9 @@
 #include "MQTTClient.h"
 #include "Motor_Control.h"
 
-#define PID_KP 1
-#define PID_KD 0.75
+#define TARGET_OFFSET 50 // This is 2degrees (aim for lower...)
+#define PID_KP 0.005
+#define PID_KD 0
 
 // TEMP ARM CLASS
 class Arm {
@@ -43,7 +44,8 @@ class Arm {
          * Doing this will act as a multithreaded program and allow for both 
          * encoder calculations to happen at the same time
          */
-        void updateMotorPosition();
+        // void updateMotorPosition();
+        // void updateMotorPosition(float* prevTime, int* prevErr_L, int* prevErr_R);
 
         /**
          * Runs the setup sequence for MQTT. This must be run in 
