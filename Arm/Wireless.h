@@ -19,6 +19,14 @@ class Wireless {
         */
         IPAddress getIpAddr();
 
+        /**
+          Get the MAC Address of the Ether Object
+          Returns:
+            byte* mac or char* mac
+        */
+        void getMacAddr(byte* mac);
+        void getMacAddr(char* mac);
+
         /** 
           Connect to the internet through the wireless interface
           Inputs:

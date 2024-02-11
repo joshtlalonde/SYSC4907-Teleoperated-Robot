@@ -5,6 +5,8 @@ import numpy as np
 ARM_LENGTH_A = 90 # First Link Length (mm)
 ARM_LENGTH_B = 70 # Second Link Length (mm)
 ARM_WIDTH = 45 # Distance Between Shafts (mm)
+        
+INIT_THETA = 1.0148 # Initial Theta Offset Value
 
 # TODO: HANDLE THE ERROR STATES
 # Such as acos must be -1 <= value <= 1
@@ -44,8 +46,10 @@ def forward_kinematics(theta1, theta2):
 
     if discriminant < 0 and discriminant > -1:
         discriminant = 0
-    elif discriminant < 0:
-        raise ValueError(f"No solution found for ({theta1}rad, {theta2}rad)")
+    elif discriminant < -1:
+        # print(f"No Solution found for ({theta1}rad, {theta2}rad) with discriminant {discriminant}")
+        # raise ValueError(f"<Kinematic_Equations>: No solution found for ({theta1}rad, {theta2}rad)")
+        raise ValueError()
 
     yP1 = (-u4 + math.sqrt(discriminant)) / (2 * u3)
     yP2 = (-u4 - math.sqrt(discriminant)) / (2 * u3)
@@ -175,6 +179,47 @@ def transpose_jacobian(theta1, theta2, current_y):
 
     return J_T
 
+def torque_current(J_T: np.ndarray, force: float):
+    # 
+    pass
+
+def encoderToAngle(encoder: int):
+    """
+    Encoder to Shaft Angle Converter:
+    Converts an encoder value to the corresponding shaft angle for a rotary system.
+
+    Parameters:
+    - encoder: Integer representing the encoder value.
+
+    Returns:
+    - float: The calculated shaft angle in radians.
+
+    This function transforms an encoder value into its corresponding shaft angle, considering a conversion factor of 8192 
+    encoder units to 2*pi radians. The initial shaft offset of 1.0148 radians is added to the result.
+
+    Note: Ensure the encoder value is within the appropriate range for accurate angle conversion.
+    """
+    return (encoder * (math.pi / 4096)) + INIT_THETA # add the intial shaft offset angle
+
+
+def angleToEncoder(angle: float):
+    """
+    Shaft Angle to Encoder Value Converter:
+    Converts a shaft angle to the corresponding encoder value for a rotary system.
+
+    Parameters:
+    - angle: The shaft angle in radians.
+
+    Returns:
+    - int: The calculated encoder value.
+
+    This function converts a given shaft angle to its corresponding encoder value, using a conversion factor of 4096 encoder 
+    units per radian. The initial offset of 1.0148 radians is subtracted from the result.
+
+    Note: Ensure the input shaft angle is within the appropriate range for accurate encoder value calculation.
+    """
+    return (((angle - INIT_THETA) * 4096) / math.pi) # subtarct the inital angle value
+
 class TestKinematic_Equations(unittest.TestCase):
     """
     The TestKinematicMethods class contains unit tests for the methods in the Kinematics class.
@@ -189,6 +234,22 @@ class TestKinematic_Equations(unittest.TestCase):
         self.assertAlmostEqual(ret['left'], 1.0148, 4)
         self.assertAlmostEqual(ret['right'], 1.0148, 4)
 
+    def test_encoderToAngle(self):
+        self.assertAlmostEqual(encoderToAngle(0), 1.0148, 5)
+        self.assertAlmostEqual(encoderToAngle(1), 1.015567, 5)
+        self.assertAlmostEqual(encoderToAngle(-1), 1.014033, 5)
+
+        # Positive encoder values
+        self.assertAlmostEqual(encoderToAngle(100), 1.091499, 5)
+        self.assertAlmostEqual(encoderToAngle(500), 1.398295, 5)
+        self.assertAlmostEqual(encoderToAngle(1000), 1.781790, 5)
+        self.assertAlmostEqual(encoderToAngle(2000), 2.548780, 5)
+        self.assertAlmostEqual(encoderToAngle(5000), 4.849751, 5)
+        self.assertAlmostEqual(encoderToAngle(8000), 7.150723, 5)
+
+    def test_angleToEncoder(self):
+        self.assertAlmostEqual(angleToEncoder(1.015567), 1, 4)
+
     # def test_jacobian(self):
     #     self.assertAlmostEqual(jacobian(1.0148, 1.0148, 76.32), {}, 3)
 
@@ -197,7 +258,3 @@ class TestKinematic_Equations(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
-
-    # angle = {'left': 0, 'right': 0}
-    # angle = inverse_kinematics(16.0, 51.0)
-    # print(angle)

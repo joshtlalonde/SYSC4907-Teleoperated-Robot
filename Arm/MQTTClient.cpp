@@ -2,6 +2,9 @@
 #include "MQTTClient_Callbacks.h"
 #include <fstream>
 
+const char* MAC_ADDR_TRAINEE = "60:55:f9:d9:d1:34";
+const char* MAC_ADDR_TRAINER = "60:55:f9:d9:d9:44";
+
 /****** TODO: Change all of the esp_err_t to bool and have them handle the err within the function *****/
 
 // Constructor definition
@@ -10,6 +13,7 @@ MQTTClient::MQTTClient(char* client_id, Ether& ethernet, Wireless& wifi)
 {
     this->client = NULL;
     this->client_id = client_id;
+    // this->client_id = NULL;
     this->ethernet = ethernet;
     this->wifi = wifi;
 }
@@ -28,8 +32,8 @@ bool MQTTClient::begin(char* ssid, char* password) {
 	// Attempt to connect through ethernet first
 	if (this->ethernet.begin()) {
 		Serial.println("<MQTTClient>: Connected through Ethernet");
-    // Must turn on WiFi module to work
-    WiFi.begin();
+        // Must turn on WiFi module to work
+        WiFi.begin();
 		return true;
 	}
 
@@ -68,6 +72,19 @@ KYHJBEI3d1FqFcdGTPMIcJr69Mspw0PAtZbsbtLexoHPagfOQYXQ+Mb3BTcBMmYr\n\
 
 bool MQTTClient::connect(char* broker_hostname, int broker_port) {
     Serial.printf("<MQTTClient>: Initialize Connection to Broker at %s:%d...", broker_hostname, broker_port);
+
+    // Update clientID based on MAC Address
+    char mac[50];
+    wifi.getMacAddr(mac);
+    if (strcmp(mac, MAC_ADDR_TRAINER) == 0) {
+      this->client_id = "trainer";
+    } 
+    else if (strcmp(mac, MAC_ADDR_TRAINEE) == 0) {
+      this->client_id = "trainee";
+    }
+    else {
+      Serial.println( " ERROR: MAC Address of ESP32 is not known!");
+    }
 
     // Set Configuration of Broker
     const esp_mqtt_client_config_t mqtt_cfg = {

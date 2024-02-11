@@ -1,21 +1,20 @@
 #ifndef ENCODER_h
 #define ENCODER_h
 
-#include <EnableInterrupt.h>
-#include <QuadratureEncoder.h>
+#include <ESP32Encoder.h>
 
 //Create a Motor Control Class
 class Encoder {
     private:
-        Encoders encoderObj;
+        // Encoders encoderObj;
+        ESP32Encoder encoderObj;
         int pinA; 
         int pinB;
         float prevTime;
         int prevError;
         
     public: 
-        Encoder(Encoders& encoderObj, 
-                int pinA, int pinB);
+        Encoder(int pinA, int pinB);
 
         int getCount();
         float getPrevTime();

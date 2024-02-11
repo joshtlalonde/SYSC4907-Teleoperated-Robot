@@ -7,9 +7,12 @@ import paho.mqtt.client as mqtt
 # TODO: Create a Logger??
 
 class MQTT_Client:
-    def __init__(self, cert_path: str, client_id: str = None): 
+    def __init__(self, cert_path: str, client_id: str = None, verbose=False): 
         # Import MQTT_Callbacks, must be here due to circular dependency
         import MQTT_Callbacks as callbacks
+
+        # Set Verbose Level
+        self.verbose = verbose
 
         # Create MQTT Client object
         self.client = mqtt.Client(protocol=mqtt.MQTTv31, client_id=client_id)
@@ -56,14 +59,17 @@ class MQTT_Client:
                              "Or if the length of the payload is greater than 268435455 bytes.")
         
         if messageInfo.rc == mqtt.MQTT_ERR_SUCCESS:
-            print(f"<MQTT_Client>: {self.client_id} successfully published to {topic}",
-                  f"with qos {qos} and message id {messageInfo.mid}. Message Content: {payload}")
+            if self.verbose:
+                print(f"<MQTT_Client>: {self.client_id} successfully published to {topic}",
+                    f"with qos {qos} and message id {messageInfo.mid}. Message Content: {payload}")
         elif messageInfo.rc == mqtt.MQTT_ERR_NO_CONN:
-            print(f"<MQTT_Client>: {self.client_id} failed to publish to {topic}",
-                  f"with qos {qos} and message id {messageInfo.mid}. Client is not currently connected")
+            if self.verbose:
+                print(f"<MQTT_Client>: {self.client_id} failed to publish to {topic}",
+                    f"with qos {qos} and message id {messageInfo.mid}. Client is not currently connected")
         else:
-            print(f"<MQTT_Client>: {self.client_id} failed to publish to {topic}",
-                  f"with qos {qos} and message id {messageInfo.mid}.")
+            if self.verbose:
+                print(f"<MQTT_Client>: {self.client_id} failed to publish to {topic}",
+                    f"with qos {qos} and message id {messageInfo.mid}.")
 
 
     def subscribe(self, topic: str, qos: int = 0):
@@ -75,11 +81,13 @@ class MQTT_Client:
                              "Or topic is not a string, tuple or list.")
         
         if result == mqtt.MQTT_ERR_SUCCESS:
-            print(f"<MQTT_Client>: {self.client_id} successfully subscribed to {topic}",
-                  f"with qos {qos}. Message ID: {mid}")
+            if self.verbose:
+                print(f"<MQTT_Client>: {self.client_id} successfully subscribed to {topic}",
+                    f"with qos {qos}. Message ID: {mid}")
         else:
-            print(f"<MQTT_Client>: Client {self.client_id} failed to subscribe to {topic}",
-                  f"with qos {qos}. Message ID: {mid}")
+            if self.verbose:
+                print(f"<MQTT_Client>: Client {self.client_id} failed to subscribe to {topic}",
+                    f"with qos {qos}. Message ID: {mid}")
 
     def unsubscribe(self, topic: str):
         try:
@@ -89,11 +97,13 @@ class MQTT_Client:
                              "Or topic is not a string, tuple or list.")
         
         if result == mqtt.MQTT_ERR_SUCCESS:
-            print(f"<MQTT_Client>: {self.client_id} successfully unsubscribed to {topic}.",
-                  f"Message ID: {mid}")
+            if self.verbose:
+                print(f"<MQTT_Client>: {self.client_id} successfully unsubscribed to {topic}.",
+                    f"Message ID: {mid}")
         else:
-            print(f"<MQTT_Client>: {self.client_id} failed to unsubscribed to {topic}.",
-                  f"Message ID: {mid}")
+            if self.verbose:
+                print(f"<MQTT_Client>: {self.client_id} failed to unsubscribed to {topic}.",
+                    f"Message ID: {mid}")
             
     def message_callback_add(self, sub: str, callback):
         self.client.message_callback_add(sub, callback)
@@ -102,7 +112,7 @@ if __name__ == "__main__":
     ##### TESTING #####
     dir_path = os.path.dirname(os.path.realpath(__file__)) + r"\certs\ca-root-cert.crt"
     # Create Clients
-    client1 = MQTT_Client(cert_path=dir_path, client_id="trainee") # For Testing set to trainee
+    client1 = MQTT_Client(cert_path=dir_path, client_id="trainer")
     # Connect Clients
     print("Connect Client 1")
     client1.connect(broker_hostname="LAPTOP-HL4N9U5Q")
@@ -118,59 +128,10 @@ if __name__ == "__main__":
     test_curr = {'left': 0, 'right': 0}
     test_pos = {'x': 0, 'y': 0}
 
-    # while(1):
-    #     if test_enc['left'] > 8000:
-    #         test_enc['left'] = 0
-    #         test_enc['right'] = 200
-
-    #     test_enc['left'] = test_enc['left'] - 20
-    #     test_enc['right'] = test_enc['right'] + 20
-
-    #     # Take turns publishing
-    #     print("Publish Client 1")
-    #     client1.publish(f"encoder", json.dumps(test_enc), qos=1)
-    #     # client1.publish(f"current/{client1.client_id}", json.dumps(client1.test_curr), qos=1)
-    #     # client1.publish(f"position/{client1.client_id}", json.dumps(client1.test_pos), qos=1)
-    
-    #     time.sleep(5)
-
     while 1:
         client1.publish(f"encoder", json.dumps(test_enc), qos=1)
-        test_enc = {'left': -20, 'right': 20}
-        time.sleep(0.1)
-        client1.publish(f"encoder", json.dumps(test_enc), qos=1)
-        test_enc = {'left': -20, 'right': 20}
-        time.sleep(0.1)
-        client1.publish(f"encoder", json.dumps(test_enc), qos=1)
-        test_enc = {'left': -10, 'right': 20}
-        time.sleep(0.1)
-        client1.publish(f"encoder", json.dumps(test_enc), qos=1)
-        test_enc = {'left': 0, 'right': 20}
-        time.sleep(0.1)
-        client1.publish(f"encoder", json.dumps(test_enc), qos=1)
-        test_enc = {'left': 0, 'right': 20}
-        time.sleep(0.1)
-        client1.publish(f"encoder", json.dumps(test_enc), qos=1)
-        test_enc = {'left': 10, 'right': 30}
-        time.sleep(0.1)
-        client1.publish(f"encoder", json.dumps(test_enc), qos=1)
-        test_enc = {'left': 20, 'right': 30}
-        time.sleep(0.1)
-        client1.publish(f"encoder", json.dumps(test_enc), qos=1)
-        test_enc = {'left': 30, 'right': 30}
-        time.sleep(0.1)
-        client1.publish(f"encoder", json.dumps(test_enc), qos=1)
-        test_enc = {'left': 20, 'right': 20}
-        time.sleep(0.1)
-        client1.publish(f"encoder", json.dumps(test_enc), qos=1)
-        test_enc = {'left': 10, 'right': 10}
-        time.sleep(0.1)
-        client1.publish(f"encoder", json.dumps(test_enc), qos=1)
-        test_enc = {'left': 0, 'right': 0}
-        time.sleep(0.1)
-        client1.publish(f"encoder", json.dumps(test_enc), qos=1)
-        test_enc = {'left': -10, 'right': 10}
-        time.sleep(0.1)
+        test_enc = {'left': 1000, 'right': -1000}
+        time.sleep(5)
 
     # Disconnect clients
     client1.disconnect()
