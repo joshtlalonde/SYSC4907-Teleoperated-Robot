@@ -12,7 +12,7 @@ INIT_THETA = 1.0148 # Initial Theta Offset Value
 # Such as acos must be -1 <= value <= 1
 # These should also be tested in unit tests
 
-def forward_kinematics(theta1, theta2, previous_y):
+def forward_kinematics(theta1, theta2):
     """
     forward_kinematics:
     Calculate the end effector position based on the given parameters from
@@ -26,13 +26,13 @@ def forward_kinematics(theta1, theta2, previous_y):
     Returns:
     - Tuple (float, float): A tuple containing the x and y coordinates of the end effector.
     - Starting position is (22.5, 76.4437)
-    print(forward_kinematics(1.0148, 1.0148, 76.32))  # x=22.5, y = 76.4437
+    print(forward_kinematics(2.1268, 1.0148, 76.32))  # x=22.5, y = 76.4437
     """
 
     # Calculate R1 and R2 using given equations
-    Lx = -(ARM_LENGTH_A * math.cos(theta1)) #+ ARM_LENGTH_A + ARM_LENGTH_B
-    Ly = (ARM_LENGTH_A * math.sin(theta1))
-    Rx = (ARM_LENGTH_A * math.cos(theta2)) + ARM_WIDTH #+ ARM_LENGTH_A + ARM_LENGTH_B
+    Lx = (ARM_LENGTH_A * math.cos(theta1))
+    Ly =(ARM_LENGTH_A * math.sin(theta1))
+    Rx = (ARM_LENGTH_A * math.cos(theta2)) + ARM_WIDTH
     Ry = (ARM_LENGTH_A * math.sin(theta2))
 
     u1 = (Ry - Ly) / (Lx - Rx)
@@ -54,12 +54,14 @@ def forward_kinematics(theta1, theta2, previous_y):
     yP1 = (-u4 + math.sqrt(discriminant)) / (2 * u3)
     yP2 = (-u4 - math.sqrt(discriminant)) / (2 * u3)
 
-    '''
-        FIXME: We need to get the quadrants figured out
-    '''
-    # # Choose the solution that is closer to the previous y value
-    ypos_endeff = yP1 if abs(yP1 - previous_y) < abs(yP2 - previous_y) else yP2
-    # ypos_endeff = (-u4 - math.sqrt(discriminant)) / (2.0 * u3)
+    # Choose the solution that is closer to the previous y value
+    if yP1>=0 and yP2>=0:
+       ypos_endeff = max(yP1, yP2)
+    else:
+        if yP1 < 0:
+            ypos_endeff = yP2
+        else:
+            ypos_endeff = yP1
 
     # Calculate x based on y
     xpos_endeff = (ypos_endeff * u1) + u2
@@ -105,7 +107,7 @@ def inverse_kinematics(xp: float, yp: float):
     beta2 = math.acos((ARM_LENGTH_B**2 - ARM_LENGTH_A**2 - c2**2) / (-2 * ARM_LENGTH_A * c2))
 
     # Combine alpha and beta values based on proximity to previous values
-    theta1 = math.pi - alpha1 - beta1
+    theta1 = alpha1 + beta1
     theta2 = math.pi - alpha2 - beta2
 
     return {'left': theta1, 'right': theta2}
