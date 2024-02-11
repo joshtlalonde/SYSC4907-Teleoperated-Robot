@@ -3,25 +3,30 @@ import time
 import json
 import math
 import unittest
+import Kinematic_Equations
 from MQTT_Client import MQTT_Client
 #import paho.mqtt.client as mqtt
 
 class Kinematics:
-    def __init__(self, broker_hostname: str = "LAPTOP-HL4N9U5Q", cert_path: str = os.path.dirname(os.path.realpath(__file__)) + r"\certs\ca-root-cert.crt"):
+    def __init__(self, broker_hostname: str = "LAPTOP-HL4N9U5Q", cert_path: str = os.path.dirname(os.path.realpath(__file__)) + r"\certs\ca-root-cert.crt", verbose = False):
         # Inital postion is {x: 22.5, y: 76.32}
         self.position = {'x': 22.5, 'y': 76.32} 
         # Initial encoder is {left: 1.0148, right: 1.0148} in radians
         self.theta = {'left': 1.0148, 'right': 1.0148} 
         # Initial previous position is {'x': 22.5, 'y': 76.45} 
         self.prev_position = self.position
-        # Initial Theta Offset Value
-        self.init_theta = 1.0148
 
         # Set Client ID
         self.client_id = "kin"
+        # Initialize Incoming Encoder Message Flag
+        self.encoder_flag = False
+
+        # Set the Verbose Level
+        self.verbose = verbose
+
 
         # Initialize MQTT
-        self.mqttClient = MQTT_Client(cert_path=cert_path, client_id=self.client_id)
+        self.mqttClient = MQTT_Client(cert_path=cert_path, client_id=self.client_id, verbose=verbose)
         # Connect Clients
         self.mqttClient.connect(broker_hostname=broker_hostname)
         # Setup the userdata passed to the callbacks function
@@ -35,15 +40,11 @@ class Kinematics:
         self.mqttClient.subscribe(topic='current/#', qos=2)
         self.mqttClient.subscribe(topic='force/#', qos=2)
 
+    # Update (x,y) Position of the Arm
+    # Input:
+    #   x: x coordinate of the Arm
+    #   y: y coordinate of the Arm
     def updatePosition(self, x: float, y: float):
-        """
-        Update (x,y) Position of the Arm
-        
-        Parameters:
-            x: x coordinate of the Arm
-            y: y coordinate of the Arm
-        """
-
         # Store the current position as the previous position
         self.prev_position = self.position.copy()
         # Update the position
@@ -51,62 +52,15 @@ class Kinematics:
         self.position['x'] = x
         self.position['y'] = y
 
-
-    def updateTheta(self, left: float, right: float):
-        """
-        Update angle from the starting position of the motors
-        
-        Parameters:
-            left: Angle for the left motor
-            right: Angle for the right motor
-        """
-        self.theta['left'] = left
-        self.theta['right'] = right
-
-    def encoderToAngle(self, encoder: int):
-        """
-        Encoder to Shaft Angle Converter:
-        Converts an encoder value to the corresponding shaft angle for a rotary system.
-
-        Parameters:
-        - encoder: Integer representing the encoder value.
-
-        Returns:
-        - float: The calculated shaft angle in radians.
-
-        This function transforms an encoder value into its corresponding shaft angle, considering a conversion factor of 8192 
-        encoder units to 2*pi radians. The initial shaft offset of 1.0148 radians is added to the result.
-
-        Note: Ensure the encoder value is within the appropriate range for accurate angle conversion.
-        """
-        return (encoder * (math.pi/4096)) + self.init_theta # add the intial shaft offset angle
-    
-
-    def angleToEncoder(self, angle: float):
-        """
-        Shaft Angle to Encoder Value Converter:
-        Converts a shaft angle to the corresponding encoder value for a rotary system.
-
-        Parameters:
-        - angle: The shaft angle in radians.
-
-        Returns:
-        - int: The calculated encoder value.
-
-        This function converts a given shaft angle to its corresponding encoder value, using a conversion factor of 4096 encoder 
-        units per radian. The initial offset of 1.0148 radians is subtracted from the result.
-
-        Note: Ensure the input shaft angle is within the appropriate range for accurate encoder value calculation.
-        """
-        return (((angle - self.init_theta) * 4096) / math.pi) # subtarct the inital angle value
+    # Update angle from the starting position of the motors
+    # Input:
+    #   left: Encoder value for the left motor
+    #   right: Angle for the right motor
+    def updateTheta(self, encoderLeft: float, encoderRight: float):
+        self.theta['left'] = Kinematic_Equations.encoderToAngle(encoderLeft)
+        self.theta['right'] = Kinematic_Equations.encoderToAngle(encoderRight)
     
 class TestKinematics(unittest.TestCase):
-    def test_encoderToAngle(self): 
-        self.assertAlmostEqual((200 * (math.pi/4096)) + 1.0148, 1.1682, 4)
-
-    def test_angleToEncoder(self):
-        self.assertAlmostEqual((((1.1682 - 1.0148) * 4096) / math.pi), 200, 0)
-
     def test_updatePosition(self):
         kin = Kinematics()
         self.assertEqual(kin.position, {'x': 22.5, 'y': 76.32})
@@ -120,28 +74,47 @@ if __name__ == '__main__':
 
     print("Starting Kinematics")
 
-    kin = Kinematics()
+    kin = Kinematics(verbose=True)
 
     time.sleep(1)
-
-    # enc = {'left': 0, 'right': 0}
     
-    # # coords (15, 50)    
-    # angle = {'left': 0.973742872260748, 'right': 1.2204646692234953}
-    # enc['left'] = kin.angleToEncoder(angle=angle['left'])
-    # enc['right'] = kin.angleToEncoder(angle['right'])
-    # # {'left': -53.5301720379992, 'right': 268.1450391656766}
+    try:
+        while True:
+            # print(kin.position)
 
-    # print(enc)
+            if kin.encoder_flag:
+                # Get Position from Angles
+                try:
+                    new_position = Kinematic_Equations.forward_kinematics(kin.theta["left"], 
+                                                                        kin.theta["right"],
+                                                                        kin.position['y'])
+                except ValueError:
+                    print(f"No solution for encoder_L: {kin.theta['left']} and encoder_R: {kin.theta['right']} \n\t Previous Position: {kin.position}")
+                    time.sleep(0.01)
 
-    # # coords (16, 51)
-    # angle = {'left': 0.9849743122743927, 'right': 1.197242811692461}
-    # enc['left'] = kin.angleToEncoder(angle=angle['left'])
-    # enc['right'] = kin.angleToEncoder(angle['right'])
-    # # {'left': -38.886650942633246, 'right': 237.86844415950037}
+                    # Forward 0 to position value = no change in position on simulation
+                    kin.mqttClient.publish(topic='position', 
+                                payload=json.dumps({'x': 0, 'y': 0}), 
+                                qos=0)
 
-    # print(enc)
+                    kin.encoder_flag = False
+                    continue
 
-    while 1:
-        pass
+                kin.updatePosition(new_position['x'], 
+                                   new_position['y'])
+                
+                # print(new_position['x'], new_position['y'])
 
+                # Get Change in position
+                change_position = {}
+                change_position['x'] = kin.prev_position['x'] - kin.position['x']
+                change_position['y'] = kin.prev_position['y'] - kin.position['y']
+                
+                # Forward new position to Virtual Environment
+                kin.mqttClient.publish(topic='position', 
+                                payload=json.dumps(change_position), 
+                                qos=0)
+
+                kin.encoder_flag = False
+    except KeyboardInterrupt:
+        print("Keyboard Interrupt Detected: Exitting...")
