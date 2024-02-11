@@ -46,10 +46,8 @@ def forward_kinematics(theta1, theta2):
 
     if discriminant < 0 and discriminant > -1:
         discriminant = 0
-    elif discriminant < -1:
-        # print(f"No Solution found for ({theta1}rad, {theta2}rad) with discriminant {discriminant}")
-        # raise ValueError(f"<Kinematic_Equations>: No solution found for ({theta1}rad, {theta2}rad)")
-        raise ValueError()
+    elif discriminant < 0:
+        raise ValueError(f"No solution found for ({theta1}rad, {theta2}rad)")
 
     yP1 = (-u4 + math.sqrt(discriminant)) / (2 * u3)
     yP2 = (-u4 - math.sqrt(discriminant)) / (2 * u3)
@@ -57,11 +55,13 @@ def forward_kinematics(theta1, theta2):
     # Choose the solution that is closer to the previous y value
     if yP1>=0 and yP2>=0:
        ypos_endeff = max(yP1, yP2)
-    else:
-        if yP1 < 0:
+    elif yP1 >=0 or yP1 >=0:
+        if yP1 > 0:
             ypos_endeff = yP2
         else:
             ypos_endeff = yP1
+    else:
+        ypos_endeff = min(yP1,yP2)
 
     # Calculate x based on y
     xpos_endeff = (ypos_endeff * u1) + u2
