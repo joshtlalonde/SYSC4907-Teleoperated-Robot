@@ -86,8 +86,7 @@ if __name__ == '__main__':
                 # Get Position from Angles
                 try:
                     new_position = Kinematic_Equations.forward_kinematics(kin.theta["left"], 
-                                                                        kin.theta["right"],
-                                                                        kin.position['y'])
+                                                                        kin.theta["right"])
                 except ValueError:
                     print(f"No solution for encoder_L: {kin.theta['left']} and encoder_R: {kin.theta['right']} \n\t Previous Position: {kin.position}")
                     time.sleep(0.01)
