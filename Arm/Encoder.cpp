@@ -12,6 +12,9 @@ Encoder::Encoder(int pinA, int pinB)
     pinMode(pinA, INPUT);
     pinMode(pinB, INPUT);
 
+    // Enable the weak pull up resistors
+	// ESP32Encoder::useInternalWeakPullResistors = puType::up;
+
     // Setup ESPEncoder
     this->encoderObj.attachFullQuad(pinA, pinB);
 }
@@ -32,6 +35,6 @@ int Encoder::getPrevError() {
     return this->prevError;
 }
 
-void Encoder::setPrevError(int error) {
+void Encoder::setPrevError(int64_t error) {
     this->prevError = error;
 }

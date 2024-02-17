@@ -20,7 +20,7 @@ class Encoder {
         float getPrevTime();
         void setPrevTime(float time);
         int getPrevError();
-        void setPrevError(int error);
+        void setPrevError(int64_t error);
 };
 
 #endif

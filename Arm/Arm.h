@@ -6,8 +6,10 @@
 #include "Motor_Control.h"
 
 #define TARGET_OFFSET 50 // This is 2degrees (aim for lower...)
-#define PID_KP 0.005
+#define PID_KP 0.06
 #define PID_KD 0
+#define MIN_PWM 0
+#define MAX_PWM 200
 
 // TEMP ARM CLASS
 class Arm {
@@ -16,6 +18,7 @@ class Arm {
         Motor_Control motorL;
         Motor_Control motorR;
         bool newTargetFlag;
+        unsigned long PIDPrevT;
     public:
         Arm(MQTTClient& mqtt_client, Motor_Control& motorL, 
             Motor_Control& motorR);
@@ -44,7 +47,7 @@ class Arm {
          * Doing this will act as a multithreaded program and allow for both 
          * encoder calculations to happen at the same time
          */
-        // void updateMotorPosition();
+        void dual_PID();
         // void updateMotorPosition(float* prevTime, int* prevErr_L, int* prevErr_R);
 
         /**
