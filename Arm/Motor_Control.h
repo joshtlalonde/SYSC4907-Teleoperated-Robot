@@ -27,6 +27,8 @@ class Motor_Control {
 
         int getEncoderCount();
         int getCurrentAmps();
+        int64_t getPrevEncoderError();
+        void setPrevEncoderError(int64_t err);
 
         /** 
          * Updates the Target Value of the encoder.
@@ -45,7 +47,7 @@ class Motor_Control {
          * int pwmVal: Speed of the motor, 0 = stop / 255 = full speed
          */
         void setMotor(int dir, int pwmVal); 
-        // void PID_Encoder(int target);
+        void PID_Encoder(int target);
         // void PID_Current(float target);
 };
 

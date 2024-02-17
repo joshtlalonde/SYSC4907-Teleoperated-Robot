@@ -80,9 +80,12 @@ if __name__ == '__main__':
     
     try:
         while True:
-            # print(kin.position)
+            test_enc = {'left': 200, 'right': -200}
+            kin.mqttClient.publish(f"encoder", json.dumps(test_enc), qos=1)
+            time.sleep(5)
 
-            if kin.encoder_flag:
+            #if kin.encoder_flag:
+            if 0:
                 # Get Position from Angles
                 try:
                     new_position = Kinematic_Equations.forward_kinematics(kin.theta["left"], 

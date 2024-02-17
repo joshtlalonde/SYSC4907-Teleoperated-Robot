@@ -7,7 +7,7 @@
 #include "Arm.h"
 
 /** Verbose Option */
-#define VERBOSE true
+#define VERBOSE false
 
 /** PIN Definitions */
 // Encoder Pins
@@ -26,6 +26,8 @@
 
 /** Message Send Delay */
 #define SEND_DELAY 250 // milliseconds
+/** Dual PID Sample Rate */
+#define PID_SAMPLE_RATE 1 // milliseconds
 
 // The media access control (ethernet hardware) address for the ethernet shield:
 byte ETHERNET_MAC[] = { 0x40, 0x8D, 0x5C, 0xE7, 0xA5, 0x98 };  
@@ -67,12 +69,22 @@ void setup()
                  MOSQUITTO_IP, MOSQUITTO_PORT);
 }
 
-unsigned long prevTime = 0;
+unsigned long prevTimeMQTT = 0;
+unsigned long prevTimePID = 0;
 
 void loop () {
-  unsigned long currTime = millis();
-  if (currTime - prevTime >= SEND_DELAY) {
-    prevTime = currTime;
+  unsigned long currTimeMQTT = millis();
+  unsigned long currTimePID = micros();
+
+  if (currTimeMQTT - prevTimeMQTT >= SEND_DELAY) {
+    prevTimeMQTT = currTimeMQTT;
     arm.publish_encoder();
+  }
+
+  if (currTimePID - prevTimePID >= PID_SAMPLE_RATE) {
+    prevTimePID = currTimePID;
+    if (arm.getNewTargetFlag()) {
+      arm.dual_PID();
+    }
   }
 }

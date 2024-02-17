@@ -112,15 +112,15 @@ if __name__ == "__main__":
     ##### TESTING #####
     dir_path = os.path.dirname(os.path.realpath(__file__)) + r"\certs\ca-root-cert.crt"
     # Create Clients
-    client1 = MQTT_Client(cert_path=dir_path, client_id="trainer")
+    client1 = MQTT_Client(cert_path=dir_path, client_id="trainee")
     # Connect Clients
     print("Connect Client 1")
     client1.connect(broker_hostname="LAPTOP-HL4N9U5Q")
 
     # Subscribe Clients
     print("Subscribe Client 1")
-    client1.subscribe(f"encoder/#")
-    client1.subscribe(f"current/#")
+    # client1.subscribe(f"encoder/#")
+    # client1.subscribe(f"current/#")
 
     time.sleep(1)
 
@@ -130,7 +130,7 @@ if __name__ == "__main__":
 
     while 1:
         client1.publish(f"encoder", json.dumps(test_enc), qos=1)
-        test_enc = {'left': 1000, 'right': -1000}
+        test_enc = {'left': -400, 'right': 700}
         time.sleep(5)
 
     # Disconnect clients
