@@ -29,7 +29,7 @@ float encoderToAngle(int encoder);
   returns:
     Encoder value
 */
-int angleToEncoder(float angle);
+int angleToEncoder(double angle);
 
 /**
   Determines the position of the endpoint based on the current angles of the arm
@@ -43,7 +43,7 @@ int angleToEncoder(float angle);
     0 if passed
     -1 if fail
 */
-int forward_kinematics(float theta1, float theta2, double &x, double &y);
+int forward_kinematics(double theta1, double theta2, double &x, double &y);
 
 /**
   Determines the angles of the arm based on the current position of the endpoint
@@ -57,7 +57,7 @@ int forward_kinematics(float theta1, float theta2, double &x, double &y);
     0 if passed
     -1 if fail
 */
-int inverse_kinematics(float x, float y, float &theta1, float &theta2);
+int inverse_kinematics(double x, double y, double &theta1, double &theta2);
 
 /**
   Calculates the Jacobian matrix for a robotic arm with two revolute joints based on given shaft angles.
@@ -71,7 +71,7 @@ int inverse_kinematics(float x, float y, float &theta1, float &theta2);
     0 if passed
     -1 if fail
 */
-int jacobian(float theta1, float theta2, double current_y, double J[2][2]);
+int jacobian(double theta1, double theta2, double current_y, double J[2][2]);
 
 /**
   Calculates the transposed Jacobian matrix for a two-joint robotic arm based on given joint angles and end effector position.
@@ -85,11 +85,11 @@ int jacobian(float theta1, float theta2, double current_y, double J[2][2]);
     0 if passed
     -1 if fail
 */
-int transpose_jacobian(float theta1, float theta2, double current_y, double J_T[2][2]);
+int transpose_jacobian(double theta1, double theta2, double current_y, double J_T[2][2]);
 
 /**
   Calculates the torque then converts to a current value to be applied to motors 
 */
-int torque_current(float force, double &J_T);
+int torque_current(double force, double &J_T);
 
 #endif

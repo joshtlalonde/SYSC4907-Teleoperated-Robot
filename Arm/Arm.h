@@ -1,9 +1,13 @@
 #ifndef ARM_h
 #define ARM_h
 
-// #include "Arduino.h"
+#include "Arduino.h"
+#include "ArduinoJson.h"
+
 #include "MQTTClient.h"
+#include "MQTTClient_Callbacks.h"
 #include "Motor_Control.h"
+#include "Kinematics.h"
 
 #define TARGET_OFFSET 50 // This is 2degrees (aim for lower...)
 #define PID_KP 0.06
@@ -17,11 +21,13 @@ class Arm {
         MQTTClient mqtt_client;
         Motor_Control motorL;
         Motor_Control motorR;
+        Kinematics kinematics;
         bool newTargetFlag;
         unsigned long PIDPrevT;
+        bool verbose;
     public:
         Arm(MQTTClient& mqtt_client, Motor_Control& motorL, 
-            Motor_Control& motorR);
+            Motor_Control& motorR, Kinematics& kinematics, bool verbose);
 
         char* getClientId();
         int getNewTargetFlag();
@@ -71,17 +77,28 @@ class Arm {
 
         /**
          * Used to JSONify the current current value. Allows you to be able to send the current value of MQTT
-         * The value is written to the encoder_val_str
+         * The value is written to the current_val_str
          * 
-         * Input: encoder_val_str = pointer to a string, will have the JSON value written to it
+         * Input: current_val_str = pointer to a string, will have the JSON value written to it
          */
         void current_jsonify(char* current_val_str);
+
+        /**
+         * Used to JSONify the current CHANGE in position value. Allows for the update of (x, y)
+         * that can be sent to the virtual environment 
+         * 
+         * Input: position_val_str = pointer to a string, will have the JSON value written to it
+         */
+        void position_jsonify(char* position_val_str);
 
         // Publish to the Encoder Topic
         bool publish_encoder();
 
         // Publish to the Current Topic
         bool publish_current();
+
+        // Publish to Position Topic
+        bool publish_position();
 };
 
 #endif

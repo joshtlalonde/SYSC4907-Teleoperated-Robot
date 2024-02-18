@@ -1,19 +1,20 @@
 
 #include "Arm.h"
-#include "ArduinoJson.h"
-#include "MQTTClient.h"
-#include "MQTTClient_Callbacks.h"
 
 Arm::Arm(MQTTClient& mqtt_client, Motor_Control& motorL, 
-         Motor_Control& motorR) : mqtt_client(mqtt_client), 
-         motorL(motorL), motorR(motorR)
+         Motor_Control& motorR, Kinematics& kinematics, bool verbose) : mqtt_client(mqtt_client), 
+         motorL(motorL), motorR(motorR), kinematics(kinematics)
 {
   this->mqtt_client = mqtt_client;
   this->motorL = motorL;
   this->motorR = motorR;
+  this->kinematics = kinematics;
 
+  /* PID Setup */
   this->newTargetFlag = false;
   this->PIDPrevT = 0;
+
+  this->verbose = verbose;
 }
 
 char* Arm::getClientId() {
@@ -147,6 +148,10 @@ void Arm::mqtt_setup(char* ssid, char* password,
   this->mqtt_client.subscribe("encoder/#", 1);
   // Subscribe to Current Topic
   this->mqtt_client.subscribe("current/#", 1);
+  // Subscribe to Position Topic
+  this->mqtt_client.subscribe("position/#", 1);
+  // Subscribe to Force Topic
+  this->mqtt_client.subscribe("force/#", 1);
 }
 
 void Arm::encoder_jsonify(char* encoder_val_str) {
@@ -161,6 +166,17 @@ void Arm::encoder_jsonify(char* encoder_val_str) {
   serializeJson(json, encoder_val_str, 50);
 }
 
+bool Arm::publish_encoder() {
+  char topic[250], encoder_val_str[250];
+  this->encoder_jsonify(encoder_val_str);
+
+  sprintf(topic, "encoder/%s", this->mqtt_client.getClientId());
+  if (this->mqtt_client.publish(topic, encoder_val_str, 0, 0, 0) < 0) 
+    return false;
+  
+  return true;
+}
+
 void Arm::current_jsonify(char* current_val_str) {
   if (current_val_str == NULL) {
     Serial.println("<ARM> Current_val_str must not be NULL");
@@ -173,26 +189,34 @@ void Arm::current_jsonify(char* current_val_str) {
   serializeJson(json, current_val_str, 50);
 }
 
-bool Arm::publish_encoder() {
-  char topic[250], encoder_val_str[250];
-  this->encoder_jsonify(encoder_val_str);
+void Arm::position_jsonify(char* position_val_str) {
+  if (position_val_str == NULL) {
+    Serial.println("<ARM> Current_val_str must not be NULL");
+  }
 
-  sprintf(topic, "encoder/%s", this->mqtt_client.getClientId());
-  if (this->mqtt_client.publish(topic, encoder_val_str, 0, 0, 0) < 0) 
+  // Save Previous Position
+  double prevX = this->kinematics.getX();
+  double prevY = this->kinematics.getY();
+  // Update Position using forward_kinematics
+  this->kinematics.updatePosition(this->motorL.getEncoderCount(), this->motorR.getEncoderCount());
+
+  DynamicJsonDocument json(1024);
+  json["x"] = prevX - this->kinematics.getX(); /** QUESTION: Should this be prev-final or final-prev ??? */
+  json["y"] = prevY - this->kinematics.getY();
+
+  serializeJson(json, position_val_str, 50);
+}
+
+bool Arm::publish_position() {
+  char topic[250], position_val_str[250];
+  this->position_jsonify(position_val_str);
+
+  sprintf(topic, "position/%s", this->mqtt_client.getClientId());
+  if (this->mqtt_client.publish(topic, position_val_str, 0, 0, 0) < 0) 
     return false;
   
   return true;
 }
 
-bool Arm::publish_current() {
-  char topic[250], current_val_str[250];
-  this->current_jsonify(current_val_str);
-
-  sprintf(topic, "current/%s", this->mqtt_client.getClientId());
-  if (this->mqtt_client.publish(topic, current_val_str, 0, 1, 0) < 0)
-    return false;
-  
-  return true;
-}
 
 /************************************/

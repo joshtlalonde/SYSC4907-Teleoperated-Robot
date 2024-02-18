@@ -6,11 +6,11 @@ float encoderToAngle(int encoder) {
 }
 
 
-int angleToEncoder(float angle) {
+int angleToEncoder(double angle) {
     return (((angle - INIT_THETA) * 4096) / PI); // subtarct the inital angle value
 }
 
-int forward_kinematics(float theta1, float theta2, double &x, double &y) {
+int forward_kinematics(double theta1, double theta2, double &x, double &y) {
     /* Calculate R1 and R2 using given equations */
     double Lx = (ARM_LENGTH_A * cos(theta1));
     double Ly =(ARM_LENGTH_A * sin(theta1));
@@ -54,7 +54,7 @@ int forward_kinematics(float theta1, float theta2, double &x, double &y) {
     return 0;
 }
 
-int inverse_kinematics(float x, float y, float &theta1, float &theta2) {
+int inverse_kinematics(double x, double y, double &theta1, double &theta2) {
     /* Calculate c1 and c2 using Equations 19 and 20 */
     double c1 = sqrt(pow(x, 2) + pow(y, 2));
     double c2 = sqrt(pow(c1, 2) - (2 * x * ARM_WIDTH) + pow(ARM_WIDTH, 2));
@@ -74,7 +74,7 @@ int inverse_kinematics(float x, float y, float &theta1, float &theta2) {
     return 0;
 }
 
-int jacobian(float theta1, float theta2, double current_y, double J[2][2]) {
+int jacobian(double theta1, double theta2, double current_y, double J[2][2]) {
     /* Define the matrix J with the given expressions */
     double Ly = (ARM_LENGTH_A * sin(theta1));
     double Ry = (ARM_LENGTH_A * sin(theta2));
@@ -89,7 +89,7 @@ int jacobian(float theta1, float theta2, double current_y, double J[2][2]) {
     return 0;
 }
 
-int transpose_jacobian(float theta1, float theta2, double current_y, double J_T[2][2]) {
+int transpose_jacobian(double theta1, double theta2, double current_y, double J_T[2][2]) {
     /* Define the matrix J_T with the given expressions */
     double Ly = (ARM_LENGTH_A * cos(theta1));
     double Ry = (ARM_LENGTH_A * cos(theta2));
