@@ -97,7 +97,8 @@ public class MQTT_Client {
     public async Task Publish(string topic, string payload) {
         // Setup Application Message
         var applicationMessage = new MqttApplicationMessageBuilder()
-                .WithTopic(topic)
+                // .WithClientId(mqttClientId)
+                .WithTopic(topic + "/" + mqttClientId)
                 .WithPayload(payload)
                 .Build();
 

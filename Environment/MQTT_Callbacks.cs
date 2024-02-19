@@ -16,6 +16,11 @@ public struct MQTT_Position
     public float y;
 }
 
+public struct MQTT_Force
+{
+    public float magnitude;
+}
+
 /**
  * Class for handling different MQTT Messages
  */
@@ -31,10 +36,10 @@ public static class MQTT_Callbacks
             Debug.Log("Received 'Position' message: " + rawPayload);
 
             // Convert JSON string to Object
-            MQTT_Position jsonUtility = JsonUtility.FromJson<MQTT_Position>(rawPayload);
+            MQTT_Position jsonPosition = JsonUtility.FromJson<MQTT_Position>(rawPayload);
             // Debug.Log(jsonUtility.x);
 
-            TheScript.Instance.MQTT_Update(jsonUtility.x, jsonUtility.y);
+            TheScript.Instance.MQTT_Update(jsonPosition.x, jsonPosition.y);
         }
     }
 }

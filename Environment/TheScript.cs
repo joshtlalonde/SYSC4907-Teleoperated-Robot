@@ -269,6 +269,10 @@ public class TheScript : MonoBehaviour
         Debug.Log("Force applied: " + movementForce.magnitude);
 
         // GetComponent<Rigidbody>().AddRelativeForce(movementInput * speed);
+
+        /** Publish the MQTT Force Magnitude to apply to Physical Arm */
+        MQTT_Force mqttForce = new MQTT_Force { magnitude = movementForce.magnitude };
+        await mqttClient.Publish("force", JsonUtility.ToJson(mqttForce));
     }
 
 
