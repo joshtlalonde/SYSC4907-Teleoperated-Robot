@@ -34,7 +34,7 @@ class Arm {
 
         /** 
          * Set the Target Value for both Encoders.
-         * Functions main purpose is for when receiving MQTT.
+         * Functions main purpose is for when receiving MQTT encoder updates.
          * 
          * NOTE: Raises the newTargetFlag when called
          * 
@@ -42,6 +42,15 @@ class Arm {
          * int targetR: Right Encoder's Target Value
          */
         void setEncoderTarget(int targetL, int targetR);
+
+        /** 
+         * Set the Target Value for both Current Sensors.
+         * Functions main purpose is for when receiving MQTT force updates.
+         * 
+         * float forceMagnitude: Applied force to Jacobian to calculate torque
+         *                       Converts torque to Current
+         */
+        void setCurrentTarget(float forceMagnitude);
 
         /**
          * Utilizes the PID_Encoder to move the Motors into position
@@ -55,6 +64,8 @@ class Arm {
          */
         void dual_PID();
         // void updateMotorPosition(float* prevTime, int* prevErr_L, int* prevErr_R);
+
+        void dual_Current_PID();
 
         /**
          * Runs the setup sequence for MQTT. This must be run in 

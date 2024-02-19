@@ -7,6 +7,8 @@ Encoder::Encoder(int pinA, int pinB)
     this->prevTime = 0;
     // Initialize Previous Error
     this->prevError = 0;
+    // Initialize Target
+    this->target = 0;
 
     /* Set Pin Defintions */
     pinMode(pinA, INPUT);
@@ -37,4 +39,12 @@ int Encoder::getPrevError() {
 
 void Encoder::setPrevError(int64_t error) {
     this->prevError = error;
+}
+
+int Encoder::getTarget() {
+    return this->target;
+}
+
+void Encoder::setTarget(int target) {
+    this->target = target;
 }

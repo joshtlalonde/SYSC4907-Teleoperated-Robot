@@ -12,6 +12,7 @@ class Encoder {
         int pinB;
         float prevTime;
         int prevError;
+        int target;
         
     public: 
         Encoder(int pinA, int pinB);
@@ -21,6 +22,8 @@ class Encoder {
         void setPrevTime(float time);
         int getPrevError();
         void setPrevError(int64_t error);
+        int getTarget();
+        void setTarget(int target);
 };
 
 #endif

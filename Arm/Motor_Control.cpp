@@ -44,12 +44,20 @@ void Motor_Control::setPrevEncoderError(int64_t err) {
     this->encoder.setPrevError(err);
 }
 
-void Motor_Control::setTarget(int target) {
-    this->encoderTarget = target;
+void Motor_Control::setEncoderTarget(int target) {
+    this->encoder.setTarget(target);
 }
 
-int Motor_Control::getTarget() {
-    return this->encoderTarget;
+int Motor_Control::getEncoderTarget() {
+    return this->encoder.getTarget();
+}
+
+void Motor_Control::setCurrentTarget(float target) {
+    this->currentSensor.setTarget(target);
+}
+
+float Motor_Control::getCurrentTarget() {
+    return this->currentSensor.getTarget();
 }
 
 void Motor_Control::setMotor(int direction, int pwmVal) {

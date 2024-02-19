@@ -9,8 +9,8 @@ Kinematics::Kinematics(bool verbose)
     this->y = 76.32;
 
     /* Force Setup */
-    // TODO
-    // this->torque ...?
+    this->force = 0;
+    this->torque[2][2];
 
     this->verbose = verbose;
 }
@@ -21,6 +21,10 @@ double Kinematics::getX() {
 
 double Kinematics::getY() {
     return this->y;
+}
+
+void Kinematics::getTorque(double torque[2][2]) {
+    torque = this->torque;
 }
 
 int Kinematics::updatePosition(int encoderL, int encoderR) {
@@ -44,4 +48,32 @@ int Kinematics::updatePosition(int encoderL, int encoderR) {
     }
 
     return 0;
+}
+
+int Kinematics::updateTorque(int encoderL, int encoderR, float force) {
+    double J[2][2];
+    this->force = force;
+
+    // Get Angles (rad) from encoder values
+    double theta1 = encoderToAngle(encoderL);
+    double theta2 = encoderToAngle(encoderR);
+
+    if (jacobian(theta1, theta2, this->y, J)) {
+        if (this->verbose)
+            Serial.printf("<Kinematics>: Failed to Calculate Torque Joints with: theta1: %lf, theta2: %lf, current_y: %lf", theta1, theta2, this->y);
+            return -1;
+    }
+
+    this->torque[0][0] = J[0][0] * force;
+    this->torque[0][1] = J[0][1] * force;
+    this->torque[1][0] = J[1][0] * force;
+    this->torque[1][1] = J[1][1] * force;
+
+    return 0;
+}
+
+/** TODO: Unsure how to calculate current based off of torque here? @Kade-MacWilliams */
+int Kinematics::torqueCurrent(float &currentL, float &currentR) {
+    currentL = this->torque[0][1] * TORQUE_CONSTANT; // Which values from the torque matrix should be applied?
+    currentR = this->torque[1][1] * TORQUE_CONSTANT;
 }

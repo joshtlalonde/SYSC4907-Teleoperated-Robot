@@ -19,3 +19,11 @@ float Current_Sensor::getCurrent() {
 void Current_Sensor::setCurrent(float current) {
     this->current = current;
 }
+
+float Current_Sensor::getTarget() {
+    return this->target;
+}
+
+void Current_Sensor::setTarget(float target) {
+    this->target = target;
+}

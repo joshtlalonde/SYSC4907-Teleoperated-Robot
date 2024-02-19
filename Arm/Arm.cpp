@@ -31,8 +31,31 @@ void Arm::setEncoderTarget(int targetL, int targetR) {
   // Set the Target Flag
   this->newTargetFlag = true;
 
-  this->motorL.setTarget(targetL);
-  this->motorR.setTarget(targetR);
+  this->motorL.setEncoderTarget(targetL);
+  this->motorR.setEncoderTarget(targetR);
+}
+
+void Arm::setCurrentTarget(float forceMagnitude) {
+  // Set the Target Flag
+  // this->newTargetFlag = true;
+
+  int encoderL = this->motorL.getEncoderCount();
+  int encoderR = this->motorR.getEncoderCount();
+
+  // Calculate Joint Torques
+  if (this->kinematics.updateTorque(encoderL, encoderR, forceMagnitude)) {
+    if (this->verbose)
+      Serial.printf("<ARM>: Failed to Calculate Torque with: encoderL: %d, encoderR: %d, force: %f", encoderL, encoderR, forceMagnitude);
+      return;
+  }
+    
+  // Get Current Sensor Values from Torque
+  float currentL, currentR;
+  this->kinematics.torqueCurrent(currentL, currentR); /** TODO: Unsure how the conversion from torque to current will work */
+  
+  // Set Current Sensor target
+  this->motorL.setCurrentTarget(currentL);
+  this->motorR.setCurrentTarget(currentR);
 }
 
 void Arm::dual_PID() {
@@ -58,8 +81,8 @@ void Arm::dual_PID() {
   // Serial.printf("\t currT: %ld, deltaT: %f, prevT: %ld\n", currT, deltaT, prevT);  
 
   // error 
-  int64_t e_L = currentLeftEncoderCount - this->motorL.getTarget(); 
-  int64_t e_R = currentRightEncoderCount - this->motorR.getTarget(); 
+  int64_t e_L = currentLeftEncoderCount - this->motorL.getEncoderTarget(); 
+  int64_t e_R = currentRightEncoderCount - this->motorR.getEncoderTarget(); 
   
   // Previous Error
   this->motorL.setPrevEncoderError(e_L); 
@@ -111,6 +134,10 @@ void Arm::dual_PID() {
   this->motorL.setMotor(dir_L, pwr_L);
   // Set Left Motor Speed/Direction
   this->motorR.setMotor(dir_R, pwr_R);
+}
+
+void Arm::dual_Current_PID() {
+  Serial.println("TODO: Setup the PID for current updates???");
 }
 
 /************************************/
