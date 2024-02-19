@@ -1,4 +1,4 @@
-#include "Arduino.h"
+
 #include "Current_Sensor.h"
 
 Current_Sensor::Current_Sensor(int pin)
