@@ -87,9 +87,4 @@ int jacobian(double theta1, double theta2, double current_y, double J[2][2]);
 */
 int transpose_jacobian(double theta1, double theta2, double current_y, double J_T[2][2]);
 
-/**
-  Calculates the torque then converts to a current value to be applied to motors 
-*/
-int torque_current(double force, double &J_T);
-
 #endif
