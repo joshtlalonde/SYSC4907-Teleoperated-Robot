@@ -92,4 +92,7 @@ void on_data(void* handler_args, esp_event_base_t base, int32_t event_id, void* 
             arm_client->setCurrentTarget(json["x"], json["y"]);
         }
     }
+
+    free(eventTopic);
+    free(eventData);
 }
