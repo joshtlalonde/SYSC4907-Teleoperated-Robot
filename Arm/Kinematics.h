@@ -3,47 +3,52 @@
 
 #include "Kinematic_Equations.h"
 
-#define TORQUE_CONSTANT 1.0 //TODO: To be defined... This is the constant value that converts torque to current?
+#define KT 1.0/232.65; // Motor velocity constant
 
 class Kinematics {
     private:
         double x;
         double y;
-        float force; // Currently this is unused, but kept updated through "updateTorque()"
-        double torque[2][2];
+        double torqueL;
+        double torqueR;
         bool verbose;
     public:
         Kinematics(bool verbose);
 
-        double getX();
-        double getY();
-        void getTorque(double torque[2][2]);
-
         /** 
-         * Updates the (x, y) coordinates of the ARM for the 
+         * Gets the (x, y) coordinates of the ARM for the 
          * virtual environment
          * 
-         * int encoderL: Left Encoder's Current Value
-         * int encoderR: Right Encoder's Current Value
+         * int encoderL: Left Encoder's Value
+         * int encoderR: Right Encoder's Value
+         * double &x: Return value for X position
+         * double &y: Return value for Y position
          */
-        int updatePosition(int encoderL, int encoderR);
+        bool getPosition(int encoderL, int encoderR, double &x, double &y);
 
         /** 
-         * Updates the joint torque matrix, utilizes Jacobian multiplied by force
+         * Gets the joint torque matrix, utilizes Jacobian multiplied by force
          * 
          * int encoderL: Left Encoder's Current Value
          * int encoderR: Right Encoder's Current Value
-         * float force: Force Magnitude relayed from virtual env to apply as torque
+         * float forceX: Force Value in X relayed from virtual env
+         * float forceY: Force Value in Y relayed from virtual env
+         * double &torqueL: Return value for torque on left motor
+         * double &torqueR: Return value for torque on right motor
          */
-        int updateTorque(int encoderL, int encoderR, float force);
+        bool getTorque(int encoderL, int encoderR, float forceX, float forceY, double &torqueL, double &torqueR);
 
         /** 
-         * Calculates the Current to apply to the motors based on current Torque values
+         * Calculates the Current to apply to the motors based on Torque values
          * 
-         * float &currentL: Return value for the current to the left motor
-         * float &currentR: Return value for the current to the right motor
+         * int encoderL: Left Encoder's Current Value
+         * int encoderR: Right Encoder's Current Value
+         * float forceX: Force Value in X relayed from virtual env
+         * float forceY: Force Value in Y relayed from virtual env
+         * float &currentL: Return value for current on left motor
+         * float &currentR: Return value for current on right motor
          */
-        int torqueCurrent(float &currentL, float &currentR);
+        bool getArmatureCurrent(int encoderL, int encoderR, float forceX, float forceY, float &currentL, float &currentR);
 };
 
 #endif

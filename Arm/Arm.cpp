@@ -35,23 +35,24 @@ void Arm::setEncoderTarget(int targetL, int targetR) {
   this->motorR.setEncoderTarget(targetR);
 }
 
-void Arm::setCurrentTarget(float forceMagnitude) {
+/** TODO: There will be two different types of this function: 
+ *        1. Update target based on force values
+ *        2. Update target based on current value from other arm
+*/
+void Arm::setCurrentTarget(float forceX, float forceY) {
   // Set the Target Flag
   // this->newTargetFlag = true;
 
   int encoderL = this->motorL.getEncoderCount();
   int encoderR = this->motorR.getEncoderCount();
-
-  // Calculate Joint Torques
-  if (this->kinematics.updateTorque(encoderL, encoderR, forceMagnitude)) {
-    if (this->verbose)
-      Serial.printf("<ARM>: Failed to Calculate Torque with: encoderL: %d, encoderR: %d, force: %f", encoderL, encoderR, forceMagnitude);
-      return;
-  }
     
   // Get Current Sensor Values from Torque
   float currentL, currentR;
-  this->kinematics.torqueCurrent(currentL, currentR); /** TODO: Unsure how the conversion from torque to current will work */
+  if (this->kinematics.getArmatureCurrent(encoderL, encoderR, forceX, forceY, currentL, currentR)) {
+    if (this->verbose)
+        Serial.printf("<ARM>: Failed to Calculate Armature Torque Current with: encoderL: %d, encoderR: %d, force: %f", encoderL, encoderR, forceMagnitude);
+        return;
+  }
   
   // Set Current Sensor target
   this->motorL.setCurrentTarget(currentL);
