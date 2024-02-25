@@ -8,8 +8,6 @@ class Encoder {
     private:
         // Encoders encoderObj;
         ESP32Encoder encoderObj;
-        int pinA; 
-        int pinB;
         float prevTime;
         int prevError;
         int target;

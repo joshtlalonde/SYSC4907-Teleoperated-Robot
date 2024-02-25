@@ -82,16 +82,14 @@ void on_data(void* handler_args, esp_event_base_t base, int32_t event_id, void* 
         } 
         else if (strstr(eventTopic, "current")) {
             /** TODO: Set flag and new target */
-        //   arm_client->setCurrentLeft(json["left"]);
-        //   arm_client->setCurrentRight(json["right"]);
+        //   arm_client->setCurrentTarget(json["left"], json["right"]);
         }
         else if (strstr(eventTopic, "position")) {
             /** TODO: Setup Position */
             Serial.println("\tTODO: Setup Position Response");
         } 
         else if (strstr(eventTopic, "force")) {
-            /** TODO: Setup Force */
-            arm_client->setCurrentTarget(json["magnitude"]);
+            arm_client->setCurrentTarget(json["x"], json["y"]);
         }
     }
 }

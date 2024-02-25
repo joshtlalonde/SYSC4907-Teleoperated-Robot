@@ -4,8 +4,8 @@
 Current_Sensor::Current_Sensor(int pin)
 {
     // Initialize Current Value
-    /** TODO: Read this value from analog pin? */
     this->current = 0; 
+    this->target = 0;
 
     /* Set Pin Defintions */
     pinMode(pin, INPUT);
