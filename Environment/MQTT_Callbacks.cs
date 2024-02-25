@@ -18,7 +18,8 @@ public struct MQTT_Position
 
 public struct MQTT_Force
 {
-    public float magnitude;
+    public float x;
+    public float y;
 }
 
 /**
