@@ -71,6 +71,13 @@ std::pair<double, double> get_armature_current(double theta1, double theta2, dou
     double torque[2] = {JT[0][0]*F[0] + JT[0][1]*F[1], JT[1][0]*F[0] + JT[1][1]*F[1]}; // Matrix multiplication 
     double Ial = torque[0] * KT[0];
     double Iar = torque[1] * KT[1];
+    // Set the max current output to one amp 
+    if(Ial > 1){
+        Ial = 1;
+    }
+    if(Iar > 1){
+        Iar = 1;
+    }
     return std::make_pair(Ial, Iar);
 }
 
