@@ -50,7 +50,7 @@ void Arm::setCurrentTarget(float forceX, float forceY) {
   float currentL, currentR;
   if (this->kinematics.getArmatureCurrent(encoderL, encoderR, forceX, forceY, currentL, currentR)) {
     if (this->verbose)
-        Serial.printf("<ARM>: Failed to Calculate Armature Torque Current with: encoderL: %d, encoderR: %d, force: %f", encoderL, encoderR, forceMagnitude);
+        Serial.printf("<ARM>: Failed to Calculate Armature Torque Current with: encoderL: %d, encoderR: %d, forceX: %f, forceY: %f", encoderL, encoderR, forceX, forceY);
         return;
   }
   
@@ -226,11 +226,12 @@ void Arm::position_jsonify(char* position_val_str) {
   double prevX = this->kinematics.getX();
   double prevY = this->kinematics.getY();
   // Update Position using forward_kinematics
-  this->kinematics.updatePosition(this->motorL.getEncoderCount(), this->motorR.getEncoderCount());
+  double x, y;
+  this->kinematics.getPosition(this->motorL.getEncoderCount(), this->motorR.getEncoderCount(), x, y);
 
   DynamicJsonDocument json(1024);
-  json["x"] = prevX - this->kinematics.getX(); /** QUESTION: Should this be prev-final or final-prev ??? */
-  json["y"] = prevY - this->kinematics.getY();
+  json["x"] = prevX - x; /** QUESTION: Should this be prev-final or final-prev ??? */
+  json["y"] = prevY - y;
 
   serializeJson(json, position_val_str, 50);
 }

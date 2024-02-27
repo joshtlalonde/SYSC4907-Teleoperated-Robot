@@ -47,10 +47,10 @@ class Arm {
          * Set the Target Value for both Current Sensors.
          * Functions main purpose is for when receiving MQTT force updates.
          * 
-         * float forceMagnitude: Applied force to Jacobian to calculate torque
+         * float forceX and forceY: Applied force to Jacobian to calculate torque
          *                       Converts torque to Current
          */
-        void setCurrentTarget(float forceMagnitude);
+        void setCurrentTarget(float forceX, float forceY);
 
         /**
          * Utilizes the PID_Encoder to move the Motors into position

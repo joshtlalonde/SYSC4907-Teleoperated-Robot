@@ -15,6 +15,22 @@ Kinematics::Kinematics(bool verbose)
     this->verbose = verbose;
 }
 
+double Kinematics::getX() {
+    return this->x;
+}
+
+double Kinematics::getY() {
+    return this->y;
+}
+
+double Kinematics::getTorqueL() {
+    return this->torqueL;
+}
+
+double Kinematics::getTorqueR() {
+    return this->torqueR;
+}
+
 bool Kinematics::getPosition(int encoderL, int encoderR, double &x, double &y) {
     double prevX = this->x;
     double prevY = this->y;
@@ -58,13 +74,16 @@ bool Kinematics::getTorque(int encoderL, int encoderR, float forceX, float force
         return false;
     }
 
-    this->torqueL = (J_T[0][0] * forceX) + (J_T[0][1] * forceY); // should be Fx/Fy
-    this->torqueR = (J_T[1][0] * forceX) + (J_T[1][1] * forceY); // should be Fx/Fy
+    torqueL = (J_T[0][0] * forceX) + (J_T[0][1] * forceY); // should be Fx/Fy
+    torqueR = (J_T[1][0] * forceX) + (J_T[1][1] * forceY); // should be Fx/Fy
+
+    // Update values in class
+    this->torqueL = torqueL;
+    this->torqueR = torqueR;
 
     return true;
 }
 
-/** TODO: Unsure how to calculate current based off of torque here? @Kade-MacWilliams */
 bool Kinematics::getArmatureCurrent(int encoderL, int encoderR, float forceX, float forceY, float &currentL, float &currentR) {
     double torqueL;
     double torqueR;
@@ -72,8 +91,8 @@ bool Kinematics::getArmatureCurrent(int encoderL, int encoderR, float forceX, fl
     if (this->getTorque(encoderL, encoderR, forceX, forceY, torqueL, torqueR) != 0) 
         return false;
 
-    currentL = this->torqueL * KT;
-    currentR = this->torqueR * KT;
+    currentL = torqueL * KT;
+    currentR = torqueR * KT;
 
     return true;
 }

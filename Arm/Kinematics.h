@@ -15,6 +15,11 @@ class Kinematics {
     public:
         Kinematics(bool verbose);
 
+        double getX();
+        double getY();
+        double getTorqueL();
+        double getTorqueR();
+
         /** 
          * Gets the (x, y) coordinates of the ARM for the 
          * virtual environment
