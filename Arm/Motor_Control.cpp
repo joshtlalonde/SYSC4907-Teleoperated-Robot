@@ -32,6 +32,10 @@ int Motor_Control::getEncoderCount() {
     return this->encoder.getCount();
 }
 
+double Motor_Control::getEncoderTheta() {
+    return this->encoder.encoderToAngle(this->encoder.getCount());
+}
+
 int Motor_Control::getCurrentAmps() {
     return this->currentSensor.getCurrent();
 }

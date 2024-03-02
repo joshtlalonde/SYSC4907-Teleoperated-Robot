@@ -227,7 +227,7 @@ void Arm::position_jsonify(char* position_val_str) {
   double prevY = this->kinematics.getY();
   // Update Position using forward_kinematics
   double x, y;
-  this->kinematics.getPosition(this->motorL.getEncoderCount(), this->motorR.getEncoderCount(), x, y);
+  this->kinematics.getPosition(this->motorL.getEncoderTheta(), this->motorR.getEncoderTheta(), x, y);
 
   DynamicJsonDocument json(1024);
   json["x"] = prevX - x; /** QUESTION: Should this be prev-final or final-prev ??? */

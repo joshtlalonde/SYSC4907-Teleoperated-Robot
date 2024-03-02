@@ -31,13 +31,13 @@ double Kinematics::getTorqueR() {
     return this->torqueR;
 }
 
-bool Kinematics::getPosition(int encoderL, int encoderR, double &x, double &y) {
+bool Kinematics::getPosition(double theta1, double theta2, double &x, double &y) {
     double prevX = this->x;
     double prevY = this->y;
 
     // Get Angles (rad) from encoder values
-    double theta1 = encoderToAngle(encoderL);
-    double theta2 = encoderToAngle(encoderR);
+    // double theta1 = encoderToAngle(encoderL);
+    // double theta2 = encoderToAngle(encoderR);
 
     // Get Position from forward_kinematics
     if (forward_kinematics(theta1, theta2, x, y) != 0) {
@@ -48,7 +48,7 @@ bool Kinematics::getPosition(int encoderL, int encoderR, double &x, double &y) {
         y = prevY;
 
         if (this->verbose)
-            Serial.printf("<Kinematics>: No solution found encoder_L: %lf and encoder_R: %lf \n\t Previous Position: (%d, %d)", theta1, theta2, prevX, prevY);
+            Serial.printf("<Kinematics>: No solution found encoder_L: %lf and encoder_R: %lf \n\t Previous Position: (x: %lf, y: %lf)", theta1, theta2, prevX, prevY);
 
         return false;
     }
@@ -61,12 +61,12 @@ bool Kinematics::getPosition(int encoderL, int encoderR, double &x, double &y) {
 }
 
 /** TODO: Update to Use Fx and Fy */
-bool Kinematics::getTorque(int encoderL, int encoderR, float forceX, float forceY, double &torqueL, double &torqueR) {
+bool Kinematics::getTorque(double theta1, double theta2, float forceX, float forceY, double &torqueL, double &torqueR) {
     double J_T[2][2];
 
     // Get Angles (rad) from encoder values
-    double theta1 = encoderToAngle(encoderL);
-    double theta2 = encoderToAngle(encoderR);
+    // double theta1 = encoderToAngle(encoderL);
+    // double theta2 = encoderToAngle(encoderR);
 
     if (transpose_jacobian(theta1, theta2, this->y, J_T)) {
         if (this->verbose)
@@ -84,11 +84,11 @@ bool Kinematics::getTorque(int encoderL, int encoderR, float forceX, float force
     return true;
 }
 
-bool Kinematics::getArmatureCurrent(int encoderL, int encoderR, float forceX, float forceY, float &currentL, float &currentR) {
+bool Kinematics::getArmatureCurrent(double theta1, double theta2, float forceX, float forceY, float &currentL, float &currentR) {
     double torqueL;
     double torqueR;
 
-    if (this->getTorque(encoderL, encoderR, forceX, forceY, torqueL, torqueR) != 0) 
+    if (this->getTorque(theta1, theta2, forceX, forceY, torqueL, torqueR) != 0) 
         return false;
 
     currentL = torqueL * KT;

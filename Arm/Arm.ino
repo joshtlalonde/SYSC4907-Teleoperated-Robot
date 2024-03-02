@@ -8,7 +8,7 @@
 #include "Arm.h"
 
 /** Verbose Option */
-#define VERBOSE false
+#define VERBOSE true
 
 /** PIN Definitions */
 // Encoder Pins
@@ -24,6 +24,9 @@
 #define PWM_L 4
 #define DIR_R 5
 #define PWM_R 6
+// Initial Angle Values of Arm
+#define INIT_THETA_L 2.1268 
+#define INIT_THETA_R 1.0148
 
 /** Message Send Delay */
 #define ENCODER_RATE 250 // milliseconds
@@ -52,8 +55,8 @@ Wireless wifi;
 MQTTClient mqttClient("trainee", ether, wifi);
 
 /** Motor Controller Declarations */
-Encoder encoderL(ENC_L_A, ENC_L_B);
-Encoder encoderR(ENC_R_A, ENC_R_B);
+Encoder encoderL(ENC_L_A, ENC_L_B, INIT_THETA_L);
+Encoder encoderR(ENC_R_A, ENC_R_B, INIT_THETA_R);
 Current_Sensor current_sensorL(CURR_L);
 Current_Sensor current_sensorR(CURR_R);
 Motor_Control motorL(encoderL, current_sensorL, 
@@ -94,7 +97,7 @@ void loop () {
     }
   }
 
-  if (currTimePID - prevTimePID >= POSITION_RATE) {
+  if (currTimePosition - prevTimePosition >= POSITION_RATE) {
     prevTimePosition = currTimePosition;
     arm.publish_position();
   }

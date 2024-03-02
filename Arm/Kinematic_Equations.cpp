@@ -1,15 +1,6 @@
 
 #include "Kinematic_Equations.h"
 
-float encoderToAngle(int encoder) {
-    return (encoder * (PI / 4096)) + INIT_THETA; // add the intial shaft offset angle
-}
-
-
-int angleToEncoder(double angle) {
-    return (((angle - INIT_THETA) * 4096) / PI); // subtarct the inital angle value
-}
-
 int forward_kinematics(double theta1, double theta2, double &x, double &y) {
     /* Calculate R1 and R2 using given equations */
     double Lx = (ARM_LENGTH_A * cos(theta1));
@@ -27,11 +18,13 @@ int forward_kinematics(double theta1, double theta2, double &x, double &y) {
     /* Calculate yP using quadratic equation */
     double discriminant = pow(u4, 2) - (4 * u3 * u5);
 
-    if (discriminant < 0 && discriminant > -1)
+    if (discriminant < 0 && discriminant > -1) {
         discriminant = 0;
-    else if (discriminant < 0)
-        Serial.printf("No solution found for (%frad, %frad)", theta1, theta2);
+    }
+    else if (discriminant < 0){
+        Serial.printf("No solution found for (%lfrad, %lfrad)", theta1, theta2);
         return -1;
+    }   
 
     double yP1 = (-u4 + sqrt(discriminant)) / (2 * u3);
     double yP2 = (-u4 - sqrt(discriminant)) / (2 * u3);
