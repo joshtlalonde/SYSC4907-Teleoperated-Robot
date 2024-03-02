@@ -56,14 +56,9 @@ void on_data(void* handler_args, esp_event_base_t base, int32_t event_id, void* 
     Arm* arm_client = (Arm*) handler_args;
 
     // Convert Event information into an expected string type
-    // char eventTopic[50], eventData[50];
-    // sprintf(eventTopic, "%.*s", event->topic_len, event->topic);
-    // sprintf(eventData, "%.*s", event->data_len, event->data);
-
-    char *eventTopic = (char*) malloc(event->topic_len * sizeof(char) + 1);
-    char *eventData = (char*) malloc(event->topic_len * sizeof(char) + 1);
-    sprintf(eventTopic, "%s\0", event->topic);
-    sprintf(eventData, "%s\0", event->data);
+    char eventTopic[100], eventData[100];
+    sprintf(eventTopic, "%.*s", event->topic_len, event->topic);
+    sprintf(eventData, "%.*s", event->data_len, event->data);
 
     // Make sure it is a DATA message and not from yourself
     if (event->event_id == MQTT_EVENT_DATA && !strstr(eventTopic, arm_client->getClientId())) {
@@ -86,13 +81,10 @@ void on_data(void* handler_args, esp_event_base_t base, int32_t event_id, void* 
         }
         else if (strstr(eventTopic, "position")) {
             /** TODO: Setup Position */
-            Serial.println("\tTODO: Setup Position Response");
+            Serial.println("\tTODO: Setup Position Response???");
         } 
         else if (strstr(eventTopic, "force")) {
             arm_client->setCurrentTarget(json["x"], json["y"]);
         }
     }
-
-    free(eventTopic);
-    free(eventData);
 }
