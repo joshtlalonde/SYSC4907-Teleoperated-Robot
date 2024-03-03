@@ -51,73 +51,19 @@ void on_subscribe(void* handler_args, esp_event_base_t base, int32_t event_id, v
     }
 }
 
-// void on_encoder(void* handler_args, esp_event_base_t base, int32_t event_id, void* event_data) {
-//     esp_mqtt_event_handle_t event = (esp_mqtt_event_handle_t) event_data;
-//     esp_mqtt_client_handle_t client = event->client;
-//     char* client_id = (char*) handler_args;
-
-//     // Convert Event information into a expected string type
-//     char LEncoderTopic[50], REncoderTopic[50], eventTopic[50], eventData[50];
-//     // sprintf(LEncoderTopic, "%s/left", client_id);
-//     // sprintf(REncoderTopic, "%s/right", client_id);
-//     sprintf(eventTopic, "%.*s", event->topic_len, event->topic);
-//     sprintf(eventData, "%.*s", event->data_len, event->data);
-
-//     if (event->event_id == MQTT_EVENT_DATA && !strstr(eventTopic, client_id) && strstr(eventTopic, "encoder")) {
-//       // TODO: Fix so that enc vals are objects
-//         if (strstr(eventTopic, "left")) {
-//             // Received Encoder Left Topic
-//             Serial.print("<ARM>: MQTT_EVENT_DATA: ");
-//             Serial.printf("Recieved message on topic=%s with data: %s\n", 
-//                           eventTopic, eventData);
-
-//             // Assign value received
-//             Lencoder_val = atoi(eventData);
-//         }
-//         else if (strstr(eventTopic, "right")) {
-//             // Received Encoder Right Topic
-//             Serial.print("<ARM>: MQTT_EVENT_DATA: ");
-//             Serial.printf("Recieved message on topic=%s with data: %s\n", 
-//                           eventTopic, eventData);
-
-//             // Assign value received
-//             Rencoder_val = atoi(eventData);
-//         }
-//     }
-// }
-
-// void on_current(void* handler_args, esp_event_base_t base, int32_t event_id, void* event_data) {
-//     esp_mqtt_event_handle_t event = (esp_mqtt_event_handle_t) event_data;
-//     esp_mqtt_client_handle_t client = event->client;
-//     arm_client_t* client = (arm_client_t*) handler_args;
-
-//     // Convert Event information into an expected string type
-//     char eventTopic[50], eventData[50];
-//     sprintf(eventTopic, "%.*s", event->topic_len, event->topic);
-//     sprintf(eventData, "%.*s", event->data_len, event->data);
-
-//     if (event->event_id == MQTT_EVENT_DATA && !strstr(eventTopic, client->client_id) && strstr(eventTopic, "current")) {
-//         // Received Current Left Topic from someone else
-//         Serial.print("<ARM>: MQTT_EVENT_DATA: ");
-//         Serial.printf("Recieved message on topic=%s with data: %s\n", 
-//                       eventTopic, eventData);
-
-//         // Assign value received
-//         Lcurrent_val = atoi(eventData);
-//     }
-// }
-
 void on_data(void* handler_args, esp_event_base_t base, int32_t event_id, void* event_data) {
     esp_mqtt_event_handle_t event = (esp_mqtt_event_handle_t) event_data;
-    // esp_mqtt_client_handle_t client = event->client;
     Arm* arm_client = (Arm*) handler_args;
 
     // Convert Event information into an expected string type
-    char eventTopic[50], eventData[50];
-    sprintf(eventTopic, "%.*s", event->topic_len, event->topic);
-    sprintf(eventData, "%.*s", event->data_len, event->data);
+    // char eventTopic[50], eventData[50];
+    // sprintf(eventTopic, "%.*s", event->topic_len, event->topic);
+    // sprintf(eventData, "%.*s", event->data_len, event->data);
 
-    // Serial.printf("Received message on %s: %s\n", eventTopic, eventData);
+    char *eventTopic = (char*) malloc(event->topic_len * sizeof(char) + 1);
+    char *eventData = (char*) malloc(event->topic_len * sizeof(char) + 1);
+    sprintf(eventTopic, "%s\0", event->topic);
+    sprintf(eventData, "%s\0", event->data);
 
     // Make sure it is a DATA message and not from yourself
     if (event->event_id == MQTT_EVENT_DATA && !strstr(eventTopic, arm_client->getClientId())) {
@@ -132,9 +78,6 @@ void on_data(void* handler_args, esp_event_base_t base, int32_t event_id, void* 
 
         // Check which type of DATA message
         if (strstr(eventTopic, "encoder")) {
-            /** TODO: Set flag and new target */
-        //   arm_client->setEncoderLeft(json["left"]);
-        //   arm_client->setEncoderRight(json["right"]);
             arm_client->setEncoderTarget(json["left"], json["right"]);
         } 
         else if (strstr(eventTopic, "current")) {
@@ -142,5 +85,13 @@ void on_data(void* handler_args, esp_event_base_t base, int32_t event_id, void* 
         //   arm_client->setCurrentLeft(json["left"]);
         //   arm_client->setCurrentRight(json["right"]);
         }
-     }
+        else if (strstr(eventTopic, "position")) {
+            /** TODO: Setup Position */
+            Serial.println("\tTODO: Setup Position Response");
+        } 
+        else if (strstr(eventTopic, "force")) {
+            /** TODO: Setup Force */
+            Serial.println("\tTODO: Setup Force Response");
+        }
+    }
 }

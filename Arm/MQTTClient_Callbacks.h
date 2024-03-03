@@ -44,7 +44,25 @@ void on_encoder(void* handler_args, esp_event_base_t base, int32_t event_id, voi
   Updates the Current Values associated to the arm.
   TODO: Update Current value only through PID
 */
+
 void on_current(void* handler_args, esp_event_base_t base, int32_t event_id, void* event_data);
+
+/** 
+  Handles a /current/# DATA message. 
+  Only allows messages that do not match the client_id.
+  Updates the Current Values associated to the arm.
+  TODO: Update Current value only through PID
+*/
+void on_position(void* handler_args, esp_event_base_t base, int32_t event_id, void* event_data);
+
+/** 
+  Handles a /current/# DATA message. 
+  Only allows messages that do not match the client_id.
+  Updates the Current Values associated to the arm.
+  TODO: Update Current value only through PID
+*/
+void on_force(void* handler_args, esp_event_base_t base, int32_t event_id, void* event_data);
+
 
 void on_data(void* handler_args, esp_event_base_t base, int32_t event_id, void* event_data);
 

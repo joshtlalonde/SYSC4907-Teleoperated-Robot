@@ -4,10 +4,11 @@
 #include "Motor_Control.h"
 #include "Encoder.h"
 #include "Current_Sensor.h"
+#include "Kinematics.h"
 #include "Arm.h"
 
 /** Verbose Option */
-#define VERBOSE true
+#define VERBOSE false
 
 /** PIN Definitions */
 // Encoder Pins
@@ -25,7 +26,11 @@
 #define PWM_R 6
 
 /** Message Send Delay */
-#define SEND_DELAY 250 // milliseconds
+#define ENCODER_RATE 250 // milliseconds
+/** Dual PID Sample Rate */
+#define PID_RATE 1 // microseconds
+/** Position Sample Rate */
+#define POSITION_RATE 250 // milliseconds
 
 // The media access control (ethernet hardware) address for the ethernet shield:
 byte ETHERNET_MAC[] = { 0x40, 0x8D, 0x5C, 0xE7, 0xA5, 0x98 };  
@@ -55,9 +60,10 @@ Motor_Control motorL(encoderL, current_sensorL,
                      1, 1000, 8, PWM_L, DIR_L, VERBOSE);
 Motor_Control motorR(encoderR, current_sensorR,
                      1, 1000, 8, PWM_R, DIR_R, VERBOSE);
+Kinematics kinematics(VERBOSE);
 
 /** ARM Declarations */
-Arm arm(mqttClient, motorL, motorR);
+Arm arm(mqttClient, motorL, motorR, kinematics, VERBOSE);
 
 void setup()
 {
@@ -67,12 +73,29 @@ void setup()
                  MOSQUITTO_IP, MOSQUITTO_PORT);
 }
 
-unsigned long prevTime = 0;
+unsigned long prevTimeEncoder = 0;
+unsigned long prevTimePID = 0;
+unsigned long prevTimePosition = 0;
 
 void loop () {
-  unsigned long currTime = millis();
-  if (currTime - prevTime >= SEND_DELAY) {
-    prevTime = currTime;
+  unsigned long currTimeEncoder = millis();
+  unsigned long currTimePID = micros();
+  unsigned long currTimePosition = millis();
+
+  if (currTimeEncoder - prevTimeEncoder >= ENCODER_RATE) {
+    prevTimeEncoder = currTimeEncoder;
     arm.publish_encoder();
+  }
+
+  if (currTimePID - prevTimePID >= PID_RATE) {
+    prevTimePID = currTimePID;
+    if (arm.getNewTargetFlag()) {
+      arm.dual_PID();
+    }
+  }
+
+  if (currTimePID - prevTimePID >= POSITION_RATE) {
+    prevTimePosition = currTimePosition;
+    arm.publish_position();
   }
 }
