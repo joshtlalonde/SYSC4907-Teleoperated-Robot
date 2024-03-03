@@ -21,14 +21,11 @@ class Encoder {
         void setPrevTime(float time);
         int getPrevError();
         void setPrevError(int64_t error);
-<<<<<<< HEAD
-=======
         int getTarget();
         void setTarget(int target);
 
         double encoderToAngle(int encoder);
         int angleToEncoder(double angle);
->>>>>>> 82bb521c3d3a0123d7dcd132e0fb84d84f1665f7
 };
 
 #endif

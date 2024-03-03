@@ -9,11 +9,11 @@
 #include "Motor_Control.h"
 #include "Kinematics.h"
 
-#define TARGET_OFFSET 50 // This is 2degrees (aim for lower...)
+#define TARGET_OFFSET 1 // This is the error that we want to be within for encoder value
 #define PID_KP 0.06
-#define PID_KD 0
-#define MIN_PWM 0
-#define MAX_PWM 200
+#define PID_KD 0 // 0.0000001
+#define MIN_PWM 3
+#define MAX_PWM 20
 
 // TEMP ARM CLASS
 class Arm {
@@ -24,10 +24,7 @@ class Arm {
         Kinematics kinematics;
         bool newTargetFlag;
         unsigned long PIDPrevT;
-<<<<<<< HEAD
-=======
         bool verbose;
->>>>>>> 82bb521c3d3a0123d7dcd132e0fb84d84f1665f7
     public:
         Arm(MQTTClient& mqtt_client, Motor_Control& motorL, 
             Motor_Control& motorR, Kinematics& kinematics, bool verbose);

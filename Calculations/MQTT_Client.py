@@ -112,7 +112,7 @@ if __name__ == "__main__":
     ##### TESTING #####
     dir_path = os.path.dirname(os.path.realpath(__file__)) + r"\certs\ca-root-cert.crt"
     # Create Clients
-    client1 = MQTT_Client(cert_path=dir_path, client_id="trainee")
+    client1 = MQTT_Client(cert_path=dir_path, client_id="trainer")
     # Connect Clients
     print("Connect Client 1")
     client1.connect(broker_hostname="LAPTOP-HL4N9U5Q")

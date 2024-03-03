@@ -42,17 +42,6 @@ int Motor_Control::getCurrentAmps() {
 
 int64_t Motor_Control::getPrevEncoderError() {
     return this->encoder.getPrevError();
-<<<<<<< HEAD
-}
-
-void Motor_Control::setPrevEncoderError(int64_t err) {
-    this->encoder.setPrevError(err);
-}
-
-void Motor_Control::setTarget(int target) {
-    this->encoderTarget = target;
-=======
->>>>>>> 82bb521c3d3a0123d7dcd132e0fb84d84f1665f7
 }
 
 void Motor_Control::setPrevEncoderError(int64_t err) {
@@ -60,7 +49,7 @@ void Motor_Control::setPrevEncoderError(int64_t err) {
 }
 
 void Motor_Control::setEncoderTarget(int target) {
-    this->encoder.setTarget(target);
+    this->encoderTarget = target;
 }
 
 int Motor_Control::getEncoderTarget() {
@@ -75,27 +64,28 @@ float Motor_Control::getCurrentTarget() {
     return this->currentSensor.getTarget();
 }
 
-void Motor_Control::setMotor(int direction, int pwmVal) {
+void Motor_Control::setMotor(int direction, int pwmVal, double x, double y) {
     if (this->verbose)
         Serial.printf("<MOTOR_CONTROL>: Setting Motor Direction to %s and PWM to %d\n", 
                       direction == 1 ? "CW" : "CCW", pwmVal);
 
-    // if (this->getEncoderCount() > 3000 || this->getEncoderCount() < -3000) {
-    //     analogWrite(this->pwmPin, 10);
+    if (y < 0) {
+        Serial.printf("<MOTOR_CONTROL>: Outside of Range, shutting off motors\n");
+        analogWrite(this->pwmPin, 0); // For now turn off
         
-    //     if (direction == MOTOR_DIR_CW) {   // Spins in CW direction
-    //         digitalWrite(this->dirPin, LOW); 
-    //     }
-    //     else if (direction == MOTOR_DIR_CCW) {   // Spins in CCW direction
-    //         digitalWrite(this->dirPin, HIGH);
-    //     }
-    //     else {
-    //         analogWrite(this->pwmPin, 0); //Do not spin motor
-    //         return; // Exit now
-    //     }
+        // if (direction == MOTOR_DIR_CW) {   // Spins in CCW direction
+        //     digitalWrite(this->dirPin, LOW); 
+        // }
+        // else if (direction == MOTOR_DIR_CCW) {   // Spins in CW direction
+        //     digitalWrite(this->dirPin, HIGH);
+        // }
+        // else {
+        //     analogWrite(this->pwmPin, 0); //Do not spin motor
+        //     return; // Exit now
+        // }
 
-    //     return;
-    // }
+        return;
+    }
     
     if (direction == MOTOR_DIR_CW) {   // Spins in CW direction
         digitalWrite(this->dirPin, HIGH); 

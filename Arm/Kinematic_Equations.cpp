@@ -22,7 +22,7 @@ int forward_kinematics(double theta1, double theta2, double &x, double &y) {
         discriminant = 0;
     }
     else if (discriminant < 0){
-        Serial.printf("No solution found for (%lfrad, %lfrad)", theta1, theta2);
+        Serial.printf("No solution found for (%lfrad, %lfrad)\n", theta1, theta2);
         return -1;
     }   
 

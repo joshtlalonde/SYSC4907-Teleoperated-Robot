@@ -7,9 +7,6 @@
 #define MOTOR_DIR_CW 1
 #define MOTOR_DIR_CCW -1
 
-#define MIN_PWM 6
-#define MAX_PWM 200
-
 //Create a Motor Control Class
 class Motor_Control {
     private:
@@ -58,11 +55,7 @@ class Motor_Control {
          * int dir: Direction to spin, 1 = MOTOR_DIR_CW / -1 = MOTOR_DIR_CCW
          * int pwmVal: Speed of the motor, 0 = stop / 255 = full speed
          */
-<<<<<<< HEAD
-        void setMotor(int dir, int pwmVal); 
-=======
         void setMotor(int dir, int pwmVal, double x, double y); 
->>>>>>> 82bb521c3d3a0123d7dcd132e0fb84d84f1665f7
         void PID_Encoder(int target);
         // void PID_Current(float target);
 };

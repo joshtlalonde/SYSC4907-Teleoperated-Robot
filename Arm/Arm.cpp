@@ -13,11 +13,8 @@ Arm::Arm(MQTTClient& mqtt_client, Motor_Control& motorL,
   /* PID Setup */
   this->newTargetFlag = false;
   this->PIDPrevT = 0;
-<<<<<<< HEAD
-=======
 
   this->verbose = verbose;
->>>>>>> 82bb521c3d3a0123d7dcd132e0fb84d84f1665f7
 }
 
 char* Arm::getClientId() {
@@ -87,14 +84,14 @@ void Arm::dual_PID() {
   // error 
   int64_t e_L = currentLeftEncoderCount - this->motorL.getEncoderTarget(); 
   int64_t e_R = currentRightEncoderCount - this->motorR.getEncoderTarget(); 
-  
-  // Previous Error
-  this->motorL.setPrevEncoderError(e_L); 
-  this->motorR.setPrevEncoderError(e_R);
 
   // derivative
   float dedt_L = (e_L - this->motorL.getPrevEncoderError()) / (deltaT);
   float dedt_R = (e_R - this->motorR.getPrevEncoderError()) / (deltaT);
+
+  // Previous Error
+  this->motorL.setPrevEncoderError(e_L); 
+  this->motorR.setPrevEncoderError(e_R);
 
   // Control Signal 
   float u_L = PID_KP*e_L + PID_KD*dedt_L;
@@ -105,7 +102,7 @@ void Arm::dual_PID() {
   if (pwr_L > MAX_PWM) {
     pwr_L = MAX_PWM;
   }
-  else if (pwr_L < MIN_PWM) {
+  else if (pwr_L < MIN_PWM && (e_L > 10 || e_L < -10)) {
     pwr_L = MIN_PWM;
   }
 
@@ -114,7 +111,7 @@ void Arm::dual_PID() {
   if (pwr_R > MAX_PWM) {
     pwr_R = MAX_PWM;
   }
-  else if (pwr_R < MIN_PWM) {
+  else if (pwr_R < MIN_PWM && (e_R > 10 || e_R < -10)) {
     pwr_R = MIN_PWM;
   }
 
@@ -131,95 +128,26 @@ void Arm::dual_PID() {
   }
 
   // Serial.printf("\t pwr: %f, dir: %d\n", pwr, dir); 
-  // Serial.printf("Time (ms), EncoderCount_L, EncoderCount_R, Target_L, Target_R, PWM_L, PWM_R, u_L, u_R, Kp, Kd\n");
-  // Serial.printf("%ld, %lld, %lld, %lld, %lld, %f, %f, %f, %f, %f, %f\n", millis(), currentLeftEncoderCount, currentRightEncoderCount, target_L, target_R, pwr_L, pwr_R, u_L, u_R, kp, kd);
-  
-  // Set Left Motor Speed/Direction
-  this->motorL.setMotor(dir_L, pwr_L);
-  // Set Left Motor Speed/Direction
-  this->motorR.setMotor(dir_R, pwr_R);
+  Serial.printf("Time (ms), EncoderCount_L, EncoderCount_R, Target_L, Target_R, PWM_L, PWM_R, u_L, u_R, e_L, e_R\n");
+  Serial.printf("%ld, %lld, %lld, %d, %d, %f, %f, %f, %f, %lld, %lld\n", 
+                millis(), currentLeftEncoderCount, currentRightEncoderCount, 
+                this->motorL.getEncoderTarget(), this->motorR.getEncoderTarget(), 
+                pwr_L, pwr_R, u_L, u_R, e_L, e_R);
+
+  if ((e_L < TARGET_OFFSET && e_L > -TARGET_OFFSET) && (e_R < TARGET_OFFSET && e_R > -TARGET_OFFSET)) { // Accounts for rounding errors
+    this->motorL.setMotor(dir_L, 0, this->kinematics.getX(), this->kinematics.getY());
+    this->motorR.setMotor(dir_R, 0, this->kinematics.getX(), this->kinematics.getY());
+    this->newTargetFlag = false;
+  } else {
+      // Set Left Motor Speed/Direction
+    this->motorL.setMotor(dir_L, pwr_L, this->kinematics.getX(), this->kinematics.getY());
+    // Set Left Motor Speed/Direction
+    this->motorR.setMotor(dir_R, pwr_R, this->kinematics.getX(), this->kinematics.getY());
+  }
 }
 
 void Arm::dual_Current_PID() {
   Serial.println("TODO: Setup the PID for current updates???");
-}
-
-void Arm::dual_PID() {
-  // unsigned long currTime = millis();
-  // if (currTime - prevTime >= delayTime) {
-  //   this->PIDPrevT = currTime;
-  // }
-
-  // Serial.printf("<ARM>: PID Target {Left: %d, Right: %d}\n", 
-  //               this->motorL.getTarget(), this->motorR.getTarget());
-
-  // Get current encoder value
-  int64_t currentLeftEncoderCount = this->motorL.getEncoderCount();
-  int64_t currentRightEncoderCount = this->motorR.getEncoderCount();
-  
-
-  // Serial.printf("currentLeftEncoderCount: %lld, target: %lld, kp: %f, kd: %f\n", currentLeftEncoderCount, target, kp, kd);
-  
-  // time difference
-  unsigned long currT = micros();
-  float deltaT = ((float) (currT - this->PIDPrevT)) / ( 1.0e6 );
-  this->PIDPrevT = currT;
-  // Serial.printf("\t currT: %ld, deltaT: %f, prevT: %ld\n", currT, deltaT, prevT);  
-
-  // error 
-  int64_t e_L = currentLeftEncoderCount - this->motorL.getTarget(); 
-  int64_t e_R = currentRightEncoderCount - this->motorR.getTarget(); 
-  
-  // Previous Error
-  this->motorL.setPrevEncoderError(e_L); 
-  this->motorR.setPrevEncoderError(e_R);
-
-  // derivative
-  float dedt_L = (e_L - this->motorL.getPrevEncoderError()) / (deltaT);
-  float dedt_R = (e_R - this->motorR.getPrevEncoderError()) / (deltaT);
-
-  // Control Signal 
-  float u_L = PID_KP*e_L + PID_KD*dedt_L;
-  float u_R = PID_KP*e_R + PID_KD*dedt_R; 
-
-  //Set Left motor power
-  float pwr_L = fabs(u_L);
-  if (pwr_L > MAX_PWM) {
-    pwr_L = MAX_PWM;
-  }
-  else if (pwr_L < MIN_PWM) {
-    pwr_L = MIN_PWM;
-  }
-
-  //Set Right motor power
-  float pwr_R = fabs(u_R);
-  if (pwr_R > MAX_PWM) {
-    pwr_R = MAX_PWM;
-  }
-  else if (pwr_R < MIN_PWM) {
-    pwr_R = MIN_PWM;
-  }
-
-  // Left motor direction
-  int dir_L = -1;
-  if(u_L < 0){
-    dir_L = 1;
-  }
-
-  //Right motor direction
-  int dir_R = -1;
-  if(u_R < 0){
-    dir_R = 1;
-  }
-
-  // Serial.printf("\t pwr: %f, dir: %d\n", pwr, dir); 
-  // Serial.printf("Time (ms), EncoderCount_L, EncoderCount_R, Target_L, Target_R, PWM_L, PWM_R, u_L, u_R, Kp, Kd\n");
-  // Serial.printf("%ld, %lld, %lld, %lld, %lld, %f, %f, %f, %f, %f, %f\n", millis(), currentLeftEncoderCount, currentRightEncoderCount, target_L, target_R, pwr_L, pwr_R, u_L, u_R, kp, kd);
-  
-  // Set Left Motor Speed/Direction
-  this->motorL.setMotor(dir_L, pwr_L);
-  // Set Left Motor Speed/Direction
-  this->motorR.setMotor(dir_R, pwr_R);
 }
 
 /************************************/
@@ -258,7 +186,7 @@ void Arm::mqtt_setup(char* ssid, char* password,
   // Subscribe to Current Topic
   this->mqtt_client.subscribe("current/#", 1);
   // Subscribe to Position Topic
-  this->mqtt_client.subscribe("position/#", 1);
+  // this->mqtt_client.subscribe("position/#", 1); // FIXME: The arm does not need position data?
   // Subscribe to Force Topic
   this->mqtt_client.subscribe("force/#", 1);
 }
