@@ -53,15 +53,16 @@ def forward_kinematics(theta1, theta2):
     yP2 = (-u4 - math.sqrt(discriminant)) / (2 * u3)
 
     # Choose the solution that is closer to the previous y value
-    if yP1>=0 and yP2>=0:
-       ypos_endeff = max(yP1, yP2)
-    elif yP1 >=0 or yP1 >=0:
-        if yP1 > 0:
-            ypos_endeff = yP2
-        else:
-            ypos_endeff = yP1
-    else:
-        ypos_endeff = min(yP1,yP2)
+    ypos_endeff = max(yP1, yP2)
+    # if yP1>=0 and yP2>=0:
+    #    ypos_endeff = max(yP1, yP2)
+    # elif yP1 >=0 or yP1 >=0:
+    #     if yP1 > 0:
+    #         ypos_endeff = yP2
+    #     else:
+    #         ypos_endeff = yP1
+    # else:
+    #     ypos_endeff = min(yP1,yP2)
 
     # Calculate x based on y
     xpos_endeff = (ypos_endeff * u1) + u2
@@ -225,13 +226,13 @@ class TestKinematic_Equations(unittest.TestCase):
     The TestKinematicMethods class contains unit tests for the methods in the Kinematics class.
     """
     def test_forward_kinematics(self):
-        ret = forward_kinematics(1.0148, 1.0148, 76.32)
+        ret = forward_kinematics(2.1268, 1.0148) 
         self.assertAlmostEqual(ret['x'], 22.5, 3)
         self.assertAlmostEqual(ret['y'], 76.4437, 3) 
 
     def test_inverse_kinematics(self):
         ret = inverse_kinematics(22.5, 76.4)
-        self.assertAlmostEqual(ret['left'], 1.0148, 4)
+        self.assertAlmostEqual(ret['left'], 2.1268, 4)
         self.assertAlmostEqual(ret['right'], 1.0148, 4)
 
     def test_encoderToAngle(self):

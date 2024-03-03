@@ -1,9 +1,13 @@
 #ifndef ARM_h
 #define ARM_h
 
-// #include "Arduino.h"
+#include "Arduino.h"
+#include "ArduinoJson.h"
+
 #include "MQTTClient.h"
+#include "MQTTClient_Callbacks.h"
 #include "Motor_Control.h"
+#include "Kinematics.h"
 
 #define TARGET_OFFSET 50 // This is 2degrees (aim for lower...)
 #define PID_KP 0.06
@@ -17,18 +21,23 @@ class Arm {
         MQTTClient mqtt_client;
         Motor_Control motorL;
         Motor_Control motorR;
+        Kinematics kinematics;
         bool newTargetFlag;
         unsigned long PIDPrevT;
+<<<<<<< HEAD
+=======
+        bool verbose;
+>>>>>>> 82bb521c3d3a0123d7dcd132e0fb84d84f1665f7
     public:
         Arm(MQTTClient& mqtt_client, Motor_Control& motorL, 
-            Motor_Control& motorR);
+            Motor_Control& motorR, Kinematics& kinematics, bool verbose);
 
         char* getClientId();
         int getNewTargetFlag();
 
         /** 
          * Set the Target Value for both Encoders.
-         * Functions main purpose is for when receiving MQTT.
+         * Functions main purpose is for when receiving MQTT encoder updates.
          * 
          * NOTE: Raises the newTargetFlag when called
          * 
@@ -36,6 +45,15 @@ class Arm {
          * int targetR: Right Encoder's Target Value
          */
         void setEncoderTarget(int targetL, int targetR);
+
+        /** 
+         * Set the Target Value for both Current Sensors.
+         * Functions main purpose is for when receiving MQTT force updates.
+         * 
+         * float forceX and forceY: Applied force to Jacobian to calculate torque
+         *                       Converts torque to Current
+         */
+        void setCurrentTarget(float forceX, float forceY);
 
         /**
          * Utilizes the PID_Encoder to move the Motors into position
@@ -49,6 +67,8 @@ class Arm {
          */
         void dual_PID();
         // void updateMotorPosition(float* prevTime, int* prevErr_L, int* prevErr_R);
+
+        void dual_Current_PID();
 
         /**
          * Runs the setup sequence for MQTT. This must be run in 
@@ -71,17 +91,28 @@ class Arm {
 
         /**
          * Used to JSONify the current current value. Allows you to be able to send the current value of MQTT
-         * The value is written to the encoder_val_str
+         * The value is written to the current_val_str
          * 
-         * Input: encoder_val_str = pointer to a string, will have the JSON value written to it
+         * Input: current_val_str = pointer to a string, will have the JSON value written to it
          */
         void current_jsonify(char* current_val_str);
+
+        /**
+         * Used to JSONify the current CHANGE in position value. Allows for the update of (x, y)
+         * that can be sent to the virtual environment 
+         * 
+         * Input: position_val_str = pointer to a string, will have the JSON value written to it
+         */
+        void position_jsonify(char* position_val_str);
 
         // Publish to the Encoder Topic
         bool publish_encoder();
 
         // Publish to the Current Topic
         bool publish_current();
+
+        // Publish to Position Topic
+        bool publish_position();
 };
 
 #endif

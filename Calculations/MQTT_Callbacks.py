@@ -72,8 +72,8 @@ def on_encoder(client: mqtt.Client, userdata: Kinematics, message: mqtt.MQTTMess
 
             # Convert encoder value to angle radians and update Thetas
             userdata.updateTheta(
-                userdata.encoderToAngle(encoder_payload["left"]), 
-                userdata.encoderToAngle(encoder_payload["right"]))
+                Kinematic_Equations.encoderToAngle(encoder_payload["left"]), 
+                Kinematic_Equations.encoderToAngle(encoder_payload["right"]))
 
             # Set Flag
             userdata.encoder_flag = True
