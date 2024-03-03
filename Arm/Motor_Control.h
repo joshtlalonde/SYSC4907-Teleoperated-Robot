@@ -26,6 +26,7 @@ class Motor_Control {
                       int pwmPin, int dirPin, bool verbose);
 
         int getEncoderCount();
+        double getEncoderTheta();
         int getCurrentAmps();
         int64_t getPrevEncoderError();
         void setPrevEncoderError(int64_t err);
@@ -37,8 +38,19 @@ class Motor_Control {
          * 
          * int target: target value to set encoder to reach.
          */
-        void setTarget(int target);
-        int getTarget();
+        void setEncoderTarget(int target);
+        int getEncoderTarget();
+
+        /** 
+         * Updates the Target Value of the current sensor.
+         * This will be a value that the PID will attempt
+         * to reach
+         * 
+         * int target: target value to set current sensor to reach.
+         */
+        void setCurrentTarget(float target);
+        float getCurrentTarget();
+
 
         /** 
          * Updates the motor speed and direction
@@ -46,7 +58,7 @@ class Motor_Control {
          * int dir: Direction to spin, 1 = MOTOR_DIR_CW / -1 = MOTOR_DIR_CCW
          * int pwmVal: Speed of the motor, 0 = stop / 255 = full speed
          */
-        void setMotor(int dir, int pwmVal); 
+        void setMotor(int dir, int pwmVal, double x, double y); 
         void PID_Encoder(int target);
         // void PID_Current(float target);
 };

@@ -31,8 +31,32 @@ void Arm::setEncoderTarget(int targetL, int targetR) {
   // Set the Target Flag
   this->newTargetFlag = true;
 
-  this->motorL.setTarget(targetL);
-  this->motorR.setTarget(targetR);
+  this->motorL.setEncoderTarget(targetL);
+  this->motorR.setEncoderTarget(targetR);
+}
+
+/** TODO: There will be two different types of this function: 
+ *        1. Update target based on force values
+ *        2. Update target based on current value from other arm
+*/
+void Arm::setCurrentTarget(float forceX, float forceY) {
+  // Set the Target Flag
+  // this->newTargetFlag = true;
+
+  int encoderL = this->motorL.getEncoderCount();
+  int encoderR = this->motorR.getEncoderCount();
+    
+  // Get Current Sensor Values from Torque
+  float currentL, currentR;
+  if (this->kinematics.getArmatureCurrent(encoderL, encoderR, forceX, forceY, currentL, currentR)) {
+    if (this->verbose)
+        Serial.printf("<ARM>: Failed to Calculate Armature Torque Current with: encoderL: %d, encoderR: %d, forceX: %f, forceY: %f", encoderL, encoderR, forceX, forceY);
+        return;
+  }
+  
+  // Set Current Sensor target
+  this->motorL.setCurrentTarget(currentL);
+  this->motorR.setCurrentTarget(currentR);
 }
 
 void Arm::dual_PID() {
@@ -58,8 +82,8 @@ void Arm::dual_PID() {
   // Serial.printf("\t currT: %ld, deltaT: %f, prevT: %ld\n", currT, deltaT, prevT);  
 
   // error 
-  int64_t e_L = currentLeftEncoderCount - this->motorL.getTarget(); 
-  int64_t e_R = currentRightEncoderCount - this->motorR.getTarget(); 
+  int64_t e_L = currentLeftEncoderCount - this->motorL.getEncoderTarget(); 
+  int64_t e_R = currentRightEncoderCount - this->motorR.getEncoderTarget(); 
   
   // Previous Error
   this->motorL.setPrevEncoderError(e_L); 
@@ -111,6 +135,10 @@ void Arm::dual_PID() {
   this->motorL.setMotor(dir_L, pwr_L);
   // Set Left Motor Speed/Direction
   this->motorR.setMotor(dir_R, pwr_R);
+}
+
+void Arm::dual_Current_PID() {
+  Serial.println("TODO: Setup the PID for current updates???");
 }
 
 /************************************/
@@ -198,11 +226,12 @@ void Arm::position_jsonify(char* position_val_str) {
   double prevX = this->kinematics.getX();
   double prevY = this->kinematics.getY();
   // Update Position using forward_kinematics
-  this->kinematics.updatePosition(this->motorL.getEncoderCount(), this->motorR.getEncoderCount());
+  double x, y;
+  this->kinematics.getPosition(this->motorL.getEncoderTheta(), this->motorR.getEncoderTheta(), x, y);
 
   DynamicJsonDocument json(1024);
-  json["x"] = prevX - this->kinematics.getX(); /** QUESTION: Should this be prev-final or final-prev ??? */
-  json["y"] = prevY - this->kinematics.getY();
+  json["x"] = prevX - x; /** QUESTION: Should this be prev-final or final-prev ??? */
+  json["y"] = prevY - y;
 
   serializeJson(json, position_val_str, 50);
 }

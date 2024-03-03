@@ -13,23 +13,23 @@
   These functions are used for handling different types of messages received from the MQTT Broker
 */
 
-/**
-  Converts the encoder value to an angle in radians
+// /**
+//   Converts the encoder value to an angle in radians
 
-  int encoder: encoder value to convert
-  returns:
-    Angle in radians
-*/
-float encoderToAngle(int encoder);
+//   int encoder: encoder value to convert
+//   returns:
+//     Angle in radians
+// */
+// float encoderToAngle(int encoder);
 
-/**
-  Converts the angle in radians to an encoder value
+// /**
+//   Converts the angle in radians to an encoder value
 
-  float angle: angle to convert
-  returns:
-    Encoder value
-*/
-int angleToEncoder(double angle);
+//   float angle: angle to convert
+//   returns:
+//     Encoder value
+// */
+// int angleToEncoder(double angle);
 
 /**
   Determines the position of the endpoint based on the current angles of the arm
@@ -86,10 +86,5 @@ int jacobian(double theta1, double theta2, double current_y, double J[2][2]);
     -1 if fail
 */
 int transpose_jacobian(double theta1, double theta2, double current_y, double J_T[2][2]);
-
-/**
-  Calculates the torque then converts to a current value to be applied to motors 
-*/
-int torque_current(double force, double &J_T);
 
 #endif

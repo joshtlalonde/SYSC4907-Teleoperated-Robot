@@ -8,19 +8,24 @@ class Encoder {
     private:
         // Encoders encoderObj;
         ESP32Encoder encoderObj;
-        int pinA; 
-        int pinB;
         float prevTime;
         int prevError;
+        int target;
+        double init_theta;
         
     public: 
-        Encoder(int pinA, int pinB);
+        Encoder(int pinA, int pinB, double init_theta);
 
         int getCount();
         float getPrevTime();
         void setPrevTime(float time);
         int getPrevError();
         void setPrevError(int64_t error);
+        int getTarget();
+        void setTarget(int target);
+
+        double encoderToAngle(int encoder);
+        int angleToEncoder(double angle);
 };
 
 #endif

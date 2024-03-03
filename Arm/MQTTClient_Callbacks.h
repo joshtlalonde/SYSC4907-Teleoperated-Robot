@@ -31,39 +31,8 @@ void on_publish(void* handler_args, esp_event_base_t base, int32_t event_id, voi
 void on_subscribe(void* handler_args, esp_event_base_t base, int32_t event_id, void* event_data);
 
 /** 
-  Handles an /encoder/# DATA message. 
-  Only allows messages that do not match the client_id.
-  Updates the Encoder Values associated to the arm.
-  TODO: Update Encoder value only through PID
+  Handles a DATA message from the Broker, this is the only way to handle data received from published topics
 */
-void on_encoder(void* handler_args, esp_event_base_t base, int32_t event_id, void* event_data);
-
-/** 
-  Handles a /current/# DATA message. 
-  Only allows messages that do not match the client_id.
-  Updates the Current Values associated to the arm.
-  TODO: Update Current value only through PID
-*/
-
-void on_current(void* handler_args, esp_event_base_t base, int32_t event_id, void* event_data);
-
-/** 
-  Handles a /current/# DATA message. 
-  Only allows messages that do not match the client_id.
-  Updates the Current Values associated to the arm.
-  TODO: Update Current value only through PID
-*/
-void on_position(void* handler_args, esp_event_base_t base, int32_t event_id, void* event_data);
-
-/** 
-  Handles a /current/# DATA message. 
-  Only allows messages that do not match the client_id.
-  Updates the Current Values associated to the arm.
-  TODO: Update Current value only through PID
-*/
-void on_force(void* handler_args, esp_event_base_t base, int32_t event_id, void* event_data);
-
-
 void on_data(void* handler_args, esp_event_base_t base, int32_t event_id, void* event_data);
 
 #endif

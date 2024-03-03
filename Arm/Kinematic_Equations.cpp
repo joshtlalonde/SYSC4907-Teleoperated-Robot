@@ -1,15 +1,6 @@
 
 #include "Kinematic_Equations.h"
 
-float encoderToAngle(int encoder) {
-    return (encoder * (PI / 4096)) + INIT_THETA; // add the intial shaft offset angle
-}
-
-
-int angleToEncoder(double angle) {
-    return (((angle - INIT_THETA) * 4096) / PI); // subtarct the inital angle value
-}
-
 int forward_kinematics(double theta1, double theta2, double &x, double &y) {
     /* Calculate R1 and R2 using given equations */
     double Lx = (ARM_LENGTH_A * cos(theta1));
@@ -27,17 +18,19 @@ int forward_kinematics(double theta1, double theta2, double &x, double &y) {
     /* Calculate yP using quadratic equation */
     double discriminant = pow(u4, 2) - (4 * u3 * u5);
 
-    if (discriminant < 0 && discriminant > -1)
+    if (discriminant < 0 && discriminant > -1) {
         discriminant = 0;
-    else if (discriminant < 0)
-        Serial.printf("No solution found for (%frad, %frad)", theta1, theta2);
+    }
+    else if (discriminant < 0){
+        Serial.printf("No solution found for (%lfrad, %lfrad)", theta1, theta2);
         return -1;
+    }   
 
     double yP1 = (-u4 + sqrt(discriminant)) / (2 * u3);
     double yP2 = (-u4 - sqrt(discriminant)) / (2 * u3);
 
     /* Get max ypos since there are two possible ones */
-    double ypos_endeff = max(yP1, yP2);
+    y = max(yP1, yP2);
     // if yP1>=0 and yP2>=0:
     //    ypos_endeff = max(yP1, yP2)
     // elif yP1 >=0 or yP1 >=0:
@@ -49,7 +42,7 @@ int forward_kinematics(double theta1, double theta2, double &x, double &y) {
     //     ypos_endeff = min(yP1,yP2)
 
     /* Calculate x based on y */
-    double xpos_endeff = (ypos_endeff * u1) + u2;
+    x = (y * u1) + u2;
 
     return 0;
 }
@@ -91,10 +84,16 @@ int jacobian(double theta1, double theta2, double current_y, double J[2][2]) {
 
 int transpose_jacobian(double theta1, double theta2, double current_y, double J_T[2][2]) {
     /* Define the matrix J_T with the given expressions */
-    double Ly = (ARM_LENGTH_A * cos(theta1));
-    double Ry = (ARM_LENGTH_A * cos(theta2));
+    double Ly = (ARM_LENGTH_A * sin(theta1));
+    double Ry = (ARM_LENGTH_A * sin(theta2));
     double theta3 = PI/2 + acos((current_y - Ly) / ARM_LENGTH_B);
+    if (theta3 > -0.003 && theta3 < 0) {
+        theta3 = 0;
+    }
+
     double theta4 = PI/2 + acos((current_y - Ry) / ARM_LENGTH_B);
+    /** QUESTION: Should there be the same if statment for 
+     *            theta4 as there is for theta3?? */
 
     J_T[0][0] = ARM_LENGTH_A * ((sin(theta1 - theta3) * sin(theta4)) / sin(theta3 - theta4));
     J_T[0][1] = -ARM_LENGTH_A * ((sin(theta1 - theta3) * cos(theta4)) / sin(theta3 - theta4));
@@ -102,8 +101,4 @@ int transpose_jacobian(double theta1, double theta2, double current_y, double J_
     J_T[1][1] = -ARM_LENGTH_A * ((sin(theta4 - theta2) * cos(theta3)) / sin(theta3 - theta4));
 
     return 0;
-}
-
-int torque_current(float force, double &J_T) {
-    Serial.println("torque_current: TODO");
 }
