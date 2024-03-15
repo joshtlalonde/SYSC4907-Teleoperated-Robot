@@ -9,6 +9,8 @@ class Current_Sensor {
         int pin;
         float current;
         float target;
+        float prevTime;
+        float prevError;
         float voltage_offset;
         
     public: 
@@ -16,6 +18,10 @@ class Current_Sensor {
 
         float getTarget();
         void setTarget(float target);
+        float getPrevTime();
+        void setPrevTime(float time);
+        float getPrevError();
+        void setPrevError(float error);
 
         /*  SparkFun ACS712 and ACS723 Demo
             Created by George Beckstein for SparkFun

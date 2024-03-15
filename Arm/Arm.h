@@ -9,11 +9,14 @@
 #include "Motor_Control.h"
 #include "Kinematics.h"
 
-#define TARGET_OFFSET 1 // This is the error that we want to be within for encoder value
-#define PID_KP 0.06
-#define PID_KD 0 // 0.0000001
-#define MIN_PWM 3
-#define MAX_PWM 20
+#define ENCODER_TARGET_OFFSET 1 // This is the error that we want to be within for encoder value
+#define ARMATURE_CURRENT_TARGET_OFFSET 1
+#define ENCODER_PID_KP 0.225
+#define ENCODER_PID_KD 0 
+#define ARMATURE_CURRENT_PID_KP 0.225
+#define ARMATURE_CURRENT_PID_KD 0 
+#define MIN_PWM 29
+#define MAX_PWM 1000
 
 // TEMP ARM CLASS
 class Arm {
@@ -22,15 +25,18 @@ class Arm {
         Motor_Control motorL;
         Motor_Control motorR;
         Kinematics kinematics;
-        bool newTargetFlag;
-        unsigned long PIDPrevT;
+        bool newEncoderTargetFlag;
+        bool newCurrentTargetFlag;
+        unsigned long encoderPIDPrevT;
+        unsigned long armatureCurrentPIDPrevT;
         bool verbose;
     public:
         Arm(MQTTClient& mqtt_client, Motor_Control& motorL, 
             Motor_Control& motorR, Kinematics& kinematics, bool verbose);
 
         char* getClientId();
-        int getNewTargetFlag();
+        bool getNewEncoderTargetFlag();
+        bool getNewCurrentTargetFlag();
 
         /** 
          * Set the Target Value for both Encoders.

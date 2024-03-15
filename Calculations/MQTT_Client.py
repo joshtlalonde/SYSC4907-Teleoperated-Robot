@@ -112,7 +112,7 @@ if __name__ == "__main__":
     ##### TESTING #####
     dir_path = os.path.dirname(os.path.realpath(__file__)) + r"\certs\ca-root-cert.crt"
     # Create Clients
-    client1 = MQTT_Client(cert_path=dir_path, client_id="trainer")
+    client1 = MQTT_Client(cert_path=dir_path, client_id="trainer", verbose=True)
     # Connect Clients
     print("Connect Client 1")
     client1.connect(broker_hostname="LAPTOP-HL4N9U5Q")
@@ -127,11 +127,20 @@ if __name__ == "__main__":
     test_enc = {'left': 0, 'right': 0}
     test_curr = {'left': 0, 'right': 0}
     test_pos = {'x': 0, 'y': 0}
+    test_force = {'x': 0, 'y': 0}
 
     while 1:
-        client1.publish(f"encoder", json.dumps(test_enc), qos=1)
-        test_enc = {'left': -400, 'right': 700}
-        time.sleep(5)
+        # test_enc = {'left': 500, 'right': 500}
+        # client1.publish(f"encoder", json.dumps(test_enc), qos=1)
+        # # test_enc['left'] = test_enc['left'] + 25
+        # # test_enc['right'] = test_enc['right'] + 25
+        # time.sleep(5)
+        # test_enc = {'left': -500, 'right': -500}
+        # client1.publish(f"encoder", json.dumps(test_enc), qos=1)
+        # time.sleep(5)
+        test_force = {'x': 1, 'y': 1}
+        time.sleep(1)
+        client1.publish(f"force", json.dumps(test_force), qos=1)
 
     # Disconnect clients
     client1.disconnect()

@@ -9,6 +9,9 @@ Current_Sensor::Current_Sensor(int pin, float voltage_offset)
     this->target = 0;
     this->voltage_offset = voltage_offset;
 
+    // PID setup
+    prevError = 0;
+
     /* Set Pin Defintions */
     pinMode(pin, INPUT);
 }
@@ -51,6 +54,21 @@ void Current_Sensor::setTarget(float target) {
     this->target = target;
 }
 
+float Current_Sensor::getPrevTime() {
+    return this->prevTime;
+}
+
+void Current_Sensor::setPrevTime(float time) {
+    this->prevTime = time;
+}
+
+float Current_Sensor::getPrevError() {
+    return this->prevError;
+}
+
+void Current_Sensor::setPrevError(float error) {
+    this->prevError = error;
+}
 
 
 

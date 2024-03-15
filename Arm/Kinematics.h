@@ -41,7 +41,7 @@ class Kinematics {
          * double &torqueL: Return value for torque on left motor
          * double &torqueR: Return value for torque on right motor
          */
-        bool getTorque(double theta1, double theta2, float forceX, float forceY, double &torqueL, double &torqueR);
+        bool getTorque(double y, double theta1, double theta2, float forceX, float forceY, double &torqueL, double &torqueR);
 
         /** 
          * Calculates the Current to apply to the motors based on Torque values
@@ -53,7 +53,7 @@ class Kinematics {
          * float &currentL: Return value for current on left motor
          * float &currentR: Return value for current on right motor
          */
-        bool getArmatureCurrent(double theta1, double theta2, float forceX, float forceY, float &currentL, float &currentR);
+        bool getArmatureCurrent(double y, double theta1, double theta2, float forceX, float forceY, float &currentL, float &currentR);
 };
 
 #endif

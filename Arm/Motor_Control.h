@@ -15,6 +15,9 @@ class Motor_Control {
         int encoderTarget;
         int pwmPin;
         int dirPin;
+        uint8_t pwmChannel;
+        uint32_t frequency;
+        uint8_t resolution;
         bool verbose;
   
     public: 
@@ -24,9 +27,11 @@ class Motor_Control {
 
         int getEncoderCount();
         double getEncoderTheta();
-        int getCurrentAmps();
+        float getCurrentAmps();
         int64_t getPrevEncoderError();
         void setPrevEncoderError(int64_t err);
+        float getPrevArmatureCurrentError();
+        void setPrevArmatureCurrentError(float err);
 
         /** 
          * Updates the Target Value of the encoder.
