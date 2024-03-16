@@ -86,16 +86,17 @@ int transpose_jacobian(double theta1, double theta2, double current_y, double J_
     /* Define the matrix J_T with the given expressions */
     double Ly = (ARM_LENGTH_A * sin(theta1));
     double Ry = (ARM_LENGTH_A * sin(theta2));
-    double theta3 = PI/2 + acos((current_y - Ly) / ARM_LENGTH_B);
+    double theta3 = PI/2 - acos((current_y - Ly) / ARM_LENGTH_B);
     if (theta3 > -0.003 && theta3 < 0) {
         theta3 = 0;
     }
 
     double theta4 = PI/2 + acos((current_y - Ry) / ARM_LENGTH_B);
-    /** QUESTION: Should there be the same if statment for 
-     *            theta4 as there is for theta3?? */
+    if (theta4 > -0.003 && theta4 < 0) {
+        theta4 = 0;
+    }
 
-    J_T[0][0] = ARM_LENGTH_A * ((sin(theta1 - theta3) * sin(theta4)) / sin(theta3 - theta4));
+    J_T[0][0] = ARM_LENGTH_A * ((sin(theta1 - theta3) * sin(theta4)) / sin(theta3 - theta4)); // Is the ARM_LENGTH meant to be in meters??
     J_T[0][1] = -ARM_LENGTH_A * ((sin(theta1 - theta3) * cos(theta4)) / sin(theta3 - theta4));
     J_T[1][0] = ARM_LENGTH_A * ((sin(theta4 - theta2) * sin(theta3)) / sin(theta3 - theta4));
     J_T[1][1] = -ARM_LENGTH_A * ((sin(theta4 - theta2) * cos(theta3)) / sin(theta3 - theta4));
