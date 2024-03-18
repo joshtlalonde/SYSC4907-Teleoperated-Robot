@@ -43,6 +43,13 @@ float Current_Sensor::getCurrent() {
     // Using the Vref and sensitivity settings you configure
     float current = (voltage - Vref) * sensitivity;
 
+    if (current == NULL) {
+        Serial.printf("<Current_Sensor>: ERROR calculating the current value\n");
+        return this->current;
+    }
+
+    this->current = current;
+
     return current;
 }
 

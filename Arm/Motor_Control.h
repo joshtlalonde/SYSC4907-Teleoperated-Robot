@@ -60,7 +60,7 @@ class Motor_Control {
          * int dir: Direction to spin, 1 = MOTOR_DIR_CW / -1 = MOTOR_DIR_CCW
          * int pwmVal: Speed of the motor, 0 = stop / 255 = full speed
          */
-        void setMotor(int dir, int pwmVal, double x, double y); 
+        void setMotor(int dir, int pwmVal, double y); 
         void PID_Encoder(int target);
         // void PID_Current(float target);
 };

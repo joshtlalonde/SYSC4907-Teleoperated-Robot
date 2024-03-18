@@ -74,26 +74,14 @@ float Motor_Control::getCurrentTarget() {
     return this->currentSensor.getTarget();
 }
 
-void Motor_Control::setMotor(int direction, int pwmVal, double x, double y) {
+void Motor_Control::setMotor(int direction, int pwmVal, double y) {
     if (this->verbose)
         Serial.printf("<MOTOR_CONTROL>: Setting Motor Direction to %s and PWM to %d\n", 
                       direction == 1 ? "CW" : "CCW", pwmVal);
 
     if (y < 0) { // FIXME: I think that we should check the error values, and if it is greater than 1000 then cut it off
         Serial.printf("<MOTOR_CONTROL>: Outside of Range, shutting off motors\n");
-        analogWrite(this->pwmPin, 0); // For now turn off
-        
-        // if (direction == MOTOR_DIR_CW) {   // Spins in CCW direction
-        //     digitalWrite(this->dirPin, LOW); 
-        // }
-        // else if (direction == MOTOR_DIR_CCW) {   // Spins in CW direction
-        //     digitalWrite(this->dirPin, HIGH);
-        // }
-        // else {
-        //     analogWrite(this->pwmPin, 0); //Do not spin motor
-        //     return; // Exit now
-        // }
-
+        analogWrite(this->pwmPin, 0);
         return;
     }
     

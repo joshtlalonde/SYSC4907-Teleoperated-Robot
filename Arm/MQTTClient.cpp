@@ -8,7 +8,7 @@ const char* MAC_ADDR_TRAINER = "60:55:f9:d9:d9:44";
 /****** TODO: Change all of the esp_err_t to bool and have them handle the err within the function *****/
 
 // Constructor definition
-MQTTClient::MQTTClient(char* client_id, Ether& ethernet, Wireless& wifi)
+MQTTClient::MQTTClient(char* client_id, Ether& ethernet, Wireless& wifi, bool verbose)
                       : ethernet(ethernet), wifi(wifi) 
 {
     this->client = NULL;
@@ -16,6 +16,8 @@ MQTTClient::MQTTClient(char* client_id, Ether& ethernet, Wireless& wifi)
     // this->client_id = NULL;
     this->ethernet = ethernet;
     this->wifi = wifi;
+
+    this->verbose = verbose;
 }
 
 char* MQTTClient::getClientId() {
@@ -102,43 +104,46 @@ bool MQTTClient::connect(char* broker_hostname, int broker_port) {
 
     Serial.printf(" Initialized Connection\n", broker_hostname, broker_port);
 
-    // Adding Callback Functions
-    add_message_callback(MQTT_EVENT_CONNECTED, on_connect, this->client_id, "on_connect");
-    add_message_callback(MQTT_EVENT_DISCONNECTED, on_disconnect, this->client_id, "on_disconnect");
-    add_message_callback(MQTT_EVENT_PUBLISHED, on_publish, this->client_id, "on_publish");
-    add_message_callback(MQTT_EVENT_SUBSCRIBED, on_subscribe, this->client_id, "on_subscribe");
-
     return true; 
 }
 
 esp_err_t MQTTClient::disconnect() {
-    Serial.printf("<MQTTClient>: client_id=%s is disconnecting from MQTT Broker\n", client_id);
+    if (this->verbose) { 
+        Serial.printf("<MQTTClient>: client_id=%s is disconnecting from MQTT Broker\n", client_id);
+    }
     return esp_mqtt_client_disconnect(client);
 }
 
 esp_err_t MQTTClient::start() {
-  Serial.printf("<MQTTClient>: Starting MQTT Client with client_id '%s'\n", client_id);
-
-  // Start Connection
+    Serial.printf("<MQTTClient>: Starting MQTT Client with client_id '%s'\n", client_id);
+    // Start Connection
 	return esp_mqtt_client_start(this->client);
 }
 
 esp_err_t MQTTClient::add_message_callback(esp_mqtt_event_id_t event, const esp_event_handler_t& event_handler, void *event_handler_arg, char* callback_name) {
-    Serial.printf("<MQTTClient>: Adding message callback: %s\n", callback_name);
+    if (this->verbose) { 
+        Serial.printf("<MQTTClient>: Adding message callback: %s\n", callback_name);
+    }
     return esp_mqtt_client_register_event(this->client, event, event_handler, event_handler_arg);
 }
 
 int MQTTClient::publish(const char *topic, const char *data, int len, int qos, int retain) {
-    Serial.printf("<MQTTClient>: Publishing Message: client_id=%s, topic=%s, data=%s, len=%d, qos=%d, retain=%d\n", client_id, topic, data, len, qos, retain);
+    if (this->verbose) { 
+        Serial.printf("<MQTTClient>: Publishing Message: client_id=%s, topic=%s, data=%s, len=%d, qos=%d, retain=%d\n", client_id, topic, data, len, qos, retain);
+    }
     return esp_mqtt_client_publish(this->client, topic, data, len, qos, retain);
 }
 
 int MQTTClient::subscribe(const char *topic, int qos) {
-    Serial.printf("<MQTTClient>: Subscribing to Topic: client_id=%s, topic=%s, qos=%d\n", client_id, topic, qos);
+    if (this->verbose) { 
+        Serial.printf("<MQTTClient>: Subscribing to Topic: client_id=%s, topic=%s, qos=%d\n", client_id, topic, qos);
+    }
     return esp_mqtt_client_subscribe(this->client, topic, qos);
 }
 
 int MQTTClient::unsubscribe(const char *topic) {
-    Serial.printf("<MQTTClient>: Unsubscribing from Topic: client_id=%s, topic=%s\n", client_id, topic);
+    if (this->verbose) { 
+        Serial.printf("<MQTTClient>: Unsubscribing from Topic: client_id=%s, topic=%s\n", client_id, topic);
+    }
     return esp_mqtt_client_unsubscribe(this->client, topic);
 }

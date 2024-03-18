@@ -65,7 +65,7 @@ char* PASSWORD = "CapstoneBroker";
 /** MQTT Declarations */
 Ether ether(ETHERNET_IP, ETHERNET_MAC);
 Wireless wifi;
-MQTTClient mqttClient("trainee", ether, wifi);
+MQTTClient mqttClient("trainee", ether, wifi, VERBOSE);
 
 /** Motor Controller Declarations */
 Encoder encoderL(ENC_L_A, ENC_L_B, INIT_THETA_L);
@@ -87,18 +87,25 @@ void setup()
 
   arm.mqtt_setup(SSID, PASSWORD,
                  MOSQUITTO_IP, MOSQUITTO_PORT);
+
+  // Serial.printf("Time (ms), encoderCount_mag, target_mag, currentEncoderCount_L, currentEncoderCount_R, encoderCountTarget_L, encoderCountTarget_R, pwr_L, pwr_R\n");
+  // Serial.printf("Time (ms), currentArmatureCurrent_L, currentArmatureCurrent_R, armatureCurrentTarget_L, armatureCurrentTarget_R\n");
+  // Serial.printf("Time (ms), position_mag\n");
+  Serial.printf("Time (ms), currentArmatureCurrent_mag, armatureCurrentTarget_mag, currentArmatureCurrent_L, currentArmatureCurrent_R, armatureCurrentTarget_L, armatureCurrentTarget_R\n");
 }
 
 unsigned long prevTimeEncoder = 0;
 unsigned long prevTimePID = 0;
 unsigned long prevTimePosition = 0;
 unsigned long prevTimeCurrentSensor = 0;
+unsigned long prevCurrentTimePID = 0;
 
 void loop () {
   unsigned long currTimeEncoder = millis();
   unsigned long currTimePID = micros();
   unsigned long currTimePosition = millis();
   unsigned long currTimeCurrentSensor = millis();
+  unsigned long currTimeCurrentPID = micros();
 
   if (currTimeEncoder - prevTimeEncoder >= ENCODER_RATE) {
     prevTimeEncoder = currTimeEncoder;
@@ -134,8 +141,8 @@ void loop () {
     }
   }
 
-  if (currTimePID - prevTimePID >= PID_RATE) {
-    prevTimePID = currTimePID;
+  if (currTimeCurrentPID - prevCurrentTimePID >= PID_RATE) {
+    prevCurrentTimePID = currTimeCurrentPID;
     if (arm.getNewCurrentTargetFlag()) {
       arm.dual_Current_PID();
     }

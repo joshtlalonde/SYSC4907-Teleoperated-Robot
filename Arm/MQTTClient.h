@@ -12,9 +12,10 @@ class MQTTClient {
         char* client_id;
         Ether ethernet;
         Wireless wifi;
+        bool verbose;
 
     public:
-        MQTTClient(char* client_id, Ether& ethernet, Wireless& wifi);
+        MQTTClient(char* client_id, Ether& ethernet, Wireless& wifi, bool verbose);
 
         char* getClientId();
         void setClientId(char* client_id);

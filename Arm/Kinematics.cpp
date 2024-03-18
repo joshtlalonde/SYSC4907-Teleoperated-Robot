@@ -87,8 +87,26 @@ bool Kinematics::getArmatureCurrent(double y, double theta1, double theta2, floa
     if (this->getTorque(y, theta1, theta2, forceX, forceY, torqueL, torqueR) == false) 
         return false;
 
-    currentL = torqueL * KT;
-    currentR = torqueR * KT;
+    // Serial.printf("\t torqueL: %f, torqueR: %f\n", torqueL, torqueR);
+
+    currentL = torqueL * KT; 
+    currentR = torqueR * KT; 
+
+    currentL = currentL * 1000.0; // Convert to mA
+    currentR = currentR * 1000.0; // Convert to mA
+
+    // Max Current Safety
+    if (currentL > 2000) {
+      currentL = 2000;
+    } else if (currentL < -2000) {
+      currentL = -2000;
+    }
+
+    if (currentR > 2000) {
+      currentR = 2000;
+    } else if (currentR < -2000) {
+      currentR = -2000;
+    }
 
     return true;
 }

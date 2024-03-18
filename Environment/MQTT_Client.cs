@@ -103,6 +103,7 @@ public class MQTT_Client {
                 .Build();
 
         // Publish the Message
+        Debug.Log($"<MQTT_Client>: Publishing Message: topic={topic}, data={payload}");
         await mqttClient.PublishAsync(applicationMessage, CancellationToken.None);
     }
 

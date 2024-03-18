@@ -21,7 +21,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Globalization;
 using System.Net.Sockets;
+using System.Diagnostics;
 using UnityEngine;
+using Debug = UnityEngine.Debug;
 
 public class TheScript : MonoBehaviour
 {
@@ -34,6 +36,8 @@ public class TheScript : MonoBehaviour
     Vector3 movementInput;
 
     Vector3 movementForce;
+
+    Vector3 prevMovementForce;
 
     private List<Vector3> scalpelPositions = new List<Vector3>();
 
@@ -64,6 +68,11 @@ public class TheScript : MonoBehaviour
     private string caseContactNumber = "1"; // Case 1: No Contact | Case 2: Chest Contact | Case 3: Bone/Patient Gown Contact
 
     private bool mqttFlag = false; // Flag Used to determine if position is being updated from MQTT or the mouse
+
+    private MQTT_Client mqttClient; // Object used to define the MQTT client
+
+    private Stopwatch stopwatch; // Clock that keeps track of time
+    private float mqttTimer = 0.25f; // Interval to send MQTT Force messages (250ms)
 
     // Function needed to pass object to MQTT Instance 
     private void Awake()
@@ -103,8 +112,8 @@ public class TheScript : MonoBehaviour
         // Set Default location of scaple
         // transform.position = new Vector3(initPosX, initPosY, initPosZ);
 
-        // Create MQTT Client
-        var mqttClient = new MQTT_Client("virt");
+        // Initialize MQTT Client
+        mqttClient = new MQTT_Client("virt");
 
         // Connect MQTT Client and Subscribe to Position Topic
         try {
@@ -113,6 +122,9 @@ public class TheScript : MonoBehaviour
         } catch (Exception ex) {
             Debug.Log($"An error occurred: {ex.Message}");
         }
+
+        // Initialize Stopwatch to only Publish every certain ms
+        stopwatch = Stopwatch.StartNew();
     }
 
     void FixedUpdate()
@@ -122,7 +134,7 @@ public class TheScript : MonoBehaviour
         //     posY = Input.GetAxisRaw("Mouse Y"); // Movement of the mouse in the X direction
         // }
 
-        movementInput = new Vector3(0f, posX, posY);
+        movementInput = new Vector3(posX, posY, 0f);
         
         scalpelPositions.Add(transform.position);
 
@@ -179,7 +191,7 @@ public class TheScript : MonoBehaviour
     }
 
     //A function to control the 2DoF movement of the scalpel
-    void ScalpelMovement()
+    async void ScalpelMovement()
     {
 
         if (IsInContactWithTag("Chest"))
@@ -271,8 +283,34 @@ public class TheScript : MonoBehaviour
         // GetComponent<Rigidbody>().AddRelativeForce(movementInput * speed);
 
         /** Publish the MQTT Force Magnitude to apply to Physical Arm */
-        MQTT_Force mqttForce = new MQTT_Force { x = movementForce.x, y = movementForce.y }; // TODO: This may not be the correct one (it may be .y .z)
-        await mqttClient.Publish("force", JsonUtility.ToJson(mqttForce));
+        if (stopwatch.Elapsed.TotalSeconds >= mqttTimer)
+        {
+            if (!(prevMovementForce.x == movementForce.x && prevMovementForce.y == movementForce.y)) {
+                if (caseContactNumber == "2" || caseContactNumber == "3") {
+                    try {
+                        MQTT_Force mqttForce = new MQTT_Force { x = movementForce.x, y = movementForce.y };
+                        await mqttClient.Publish("force", JsonUtility.ToJson(mqttForce));
+                    } catch (Exception ex) {
+                        Debug.Log($"An error occurred: {ex.Message}");
+                    }
+                } else {
+                    try {
+                        MQTT_Force mqttForce = new MQTT_Force { x = 0, y = 0 };
+                        await mqttClient.Publish("force", JsonUtility.ToJson(mqttForce));
+                    } catch (Exception ex) {
+                        Debug.Log($"An error occurred: {ex.Message}");
+                    }
+                }
+
+                prevMovementForce = movementForce;
+            }
+
+
+            // Reset the stopwatch
+            stopwatch.Restart();
+        }
+
+        
     }
 
 

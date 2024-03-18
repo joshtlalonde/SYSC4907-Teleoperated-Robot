@@ -9,12 +9,14 @@
 #include "Motor_Control.h"
 #include "Kinematics.h"
 
+#define CUTOFF_ENCODER_ERROR 1500
+#define CUTOFF_ARMARTURE_CURRENT_ERROR 1000
 #define ENCODER_TARGET_OFFSET 1 // This is the error that we want to be within for encoder value
-#define ARMATURE_CURRENT_TARGET_OFFSET 1
-#define ENCODER_PID_KP 0.225
-#define ENCODER_PID_KD 0 
-#define ARMATURE_CURRENT_PID_KP 0.225
-#define ARMATURE_CURRENT_PID_KD 0 
+#define ARMATURE_CURRENT_TARGET_OFFSET 0 // This is when the Motors should stop (at 0 force)
+#define ENCODER_PID_KP 0.3 //0.315
+#define ENCODER_PID_KD 0.0001
+#define ARMATURE_CURRENT_PID_KP 0.05 //0.075
+#define ARMATURE_CURRENT_PID_KD 0 //0.0015
 #define MIN_PWM 29
 #define MAX_PWM 1000
 
@@ -29,11 +31,11 @@ class Arm {
         bool newCurrentTargetFlag;
         unsigned long encoderPIDPrevT;
         unsigned long armatureCurrentPIDPrevT;
-        bool verbose;
     public:
         Arm(MQTTClient& mqtt_client, Motor_Control& motorL, 
             Motor_Control& motorR, Kinematics& kinematics, bool verbose);
 
+        bool verbose;
         char* getClientId();
         bool getNewEncoderTargetFlag();
         bool getNewCurrentTargetFlag();
