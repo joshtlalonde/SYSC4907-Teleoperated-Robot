@@ -47,21 +47,19 @@ public class TheScript : MonoBehaviour
 
     //Speed and scalpel contact variables 
     public float speed = 0.3f;
-    public float noScalpelContactSpeed = 0.6f; // Speed of scalpel when there is no contact
-    public float scalpelContactSpeed = 0.05f;  // Speed of scalpel when there is contact
-    public float boneContactSpeed = 0.02f;     // Speed of scalpel when there is bone contact
+
 
     //initial scalpel position and rotation variables
     private float initPosX = 0; 
-    private float initPosY = 1.12f;
-    private float initPosZ = -0.05f; //Adjust z position to make scalpel more centred
+    private float initPosY = 1.17f;
+    private float initPosZ = -0.25f; //Adjust z position to make scalpel more centred
 
     // Scaple Position Change
     private float posX;
     private float posY;
 
     //Environment boundaries
-    private float bound = 0.1f;
+    private float bound = 0.13f;
     private float boundZ = 0.15f; //bound for forward and back movement
 
 
@@ -110,7 +108,7 @@ public class TheScript : MonoBehaviour
         blood.Stop();
         
         // Set Default location of scaple
-        // transform.position = new Vector3(initPosX, initPosY, initPosZ);
+        transform.position = new Vector3(initPosX, initPosY, initPosZ);
 
         // Initialize MQTT Client
         mqttClient = new MQTT_Client("virt");
@@ -118,7 +116,7 @@ public class TheScript : MonoBehaviour
         // Connect MQTT Client and Subscribe to Position Topic
         try {
             await mqttClient.Connect("LAPTOP-HL4N9U5Q", "./Assets/Scripts/certs/ca-root-cert.crt");
-            await mqttClient.Subscribe("position/kin", 2);
+            await mqttClient.Subscribe("position/#", 2);
         } catch (Exception ex) {
             Debug.Log($"An error occurred: {ex.Message}");
         }
@@ -163,57 +161,55 @@ public class TheScript : MonoBehaviour
     {
 
         //if the scalpel collides with the patient's exposed chest
-        if (other.gameObject.CompareTag("Chest"))
+        //if (other.gameObject.CompareTag("Chest"))
+	if (scalpelPosition.y < 1.143977f && scalpelPosition.z > -0.3389f && scalpelPosition.z < -0.2487f)
         {
+	
             caseContactNumber = "2";
-            blood.Play();
             playerRb.constraints = RigidbodyConstraints.FreezePositionX; //constrain scalpel movement upon collision
-            speed = scalpelContactSpeed; //reduce scalpel speed to mimic cutting
+         
         }
 
         //if the scalpel collides with bone or the patient gown
-        else if (other.gameObject.CompareTag("Bone"))
+        //else if (other.gameObject.CompareTag("Bone"))
+	else if (scalpelPosition.y < 1.143977f && scalpelPosition.z < -0.3389f && scalpelPosition.z > -0.2487f)
         {
             caseContactNumber = "3";
             playerRb.constraints = RigidbodyConstraints.FreezePositionX;
-            speed = boneContactSpeed;
-            blood.Stop();
         }
 
-    	else
-    	{
+        else
+        {
             caseContactNumber = "1";
             playerRb.constraints = RigidbodyConstraints.None;
-            speed = noScalpelContactSpeed; // Set regular speed for case 1
-	        blood.Stop();
         }
-    
+
     }
 
     //A function to control the 2DoF movement of the scalpel
-    async void ScalpelMovement()
+    async     void ScalpelMovement()
     {
 
-        if (IsInContactWithTag("Chest"))
+
+        bool isInChestContact = IsInContactWithTag("Chest");
+        bool isInBoneContact = IsInContactWithTag("Bone");
+
+        if (scalpelPosition.y < 1.143977f)
         {
-            blood.Play();
+	    if (scalpelPosition.z > -0.3389f && scalpelPosition.z < -0.2187f)
+	    {
             caseContactNumber = "2";
-            playerRb.constraints = RigidbodyConstraints.FreezePositionX; //constrain scalpel movement upon collision
-            speed = scalpelContactSpeed; //reduce scalpel speed to mimic cutting
-        } 
-        else if (IsInContactWithTag("Bone"))
-        {
-            caseContactNumber = "3";
-            playerRb.constraints = RigidbodyConstraints.FreezePositionX;
-            speed = boneContactSpeed;
-            blood.Stop();
+	    }
+	    else
+	    { 
+	     caseContactNumber = "3";
+	    }
         }
-        else 
+
+
+        else
         {
-            blood.Stop(); // Stop the blood simulation
             caseContactNumber = "1";
-            playerRb.constraints = RigidbodyConstraints.None;
-            speed = noScalpelContactSpeed; // Set regular speed for case 1
         }
 
         // Reset constraints when transitioning from case 2
@@ -221,6 +217,8 @@ public class TheScript : MonoBehaviour
         {
             playerRb.constraints = RigidbodyConstraints.None;
         }
+
+
 
         bool IsInContactWithTag(string tag)
         {
@@ -230,6 +228,7 @@ public class TheScript : MonoBehaviour
             {
                 if (collider.CompareTag(tag))
                 {
+                    Debug.Log($"Scalpel is in contact with tag: {tag}");
                     return true;
                 }
             }
@@ -239,42 +238,34 @@ public class TheScript : MonoBehaviour
 
 
         // Apply force based on the contact case
-        switch (caseContactNumber)
-        {
-            case "1": 
-                // Apply force for case 1
-                movementForce = movementInput * speed;
-                playerRb.AddRelativeForce(movementForce);
-                // playerRb.MovePosition(movementInput);
-                break;
+switch (caseContactNumber)
+{
+case "3":
+            // Check if the scalpel is within a certain depth range to prevent continuous forces
+            movementForce = movementInput * scalpelSpeed * 500; 
+            break;
 
-            case "2":
-                // Check if the scalpel is within a certain depth range to prevent continuous forces
-                if (chestDepth < maxDepth)
-                {
-                    // Gradually raise the scalpel in the Y-axis
-                    float riseSpeed = 0.01f + chestDepth * 0.1f; // Adjust the rise speed according to your preference
-                    Vector3 riseForce = Vector3.down * riseSpeed;
-                    playerRb.AddRelativeForce(riseForce);
-                    // Debug.Log("Rise force applied: " + riseForce.magnitude);
-                    blood.Play();
-                }
-                break;
 
-            case "3":
-                // Apply force for bone contact
-                movementForce = movementInput * speed;
-                playerRb.AddRelativeForce(movementForce);
-                // playerRb.MovePosition(movementInput);
-                break;
+case "2":
+            // Apply force based on the provided equation for case 2
+	    movementForce = movementInput * scalpelSpeed * 200; 
+            break;
 
-            default:
-                // Apply force for other cases
-                movementForce = movementInput * speed;
-                playerRb.AddRelativeForce(movementForce);
-                // playerRb.MovePosition(movementInput);
-                break;
-        }
+
+
+case "1":
+
+        default:
+            playerRb.AddRelativeForce(movementForce);
+            break;
+}
+
+
+            Debug.Log("Force applied: " + movementForce.magnitude);
+
+
+        GetComponent<Rigidbody>().AddRelativeForce(movementInput * speed);
+
 
 
         // Print the force magnitude to the console
